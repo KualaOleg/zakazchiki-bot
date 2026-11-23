@@ -321,15 +321,15 @@ def main() -> int:
 
     token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
     chat = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
-    if not args.dry_run and not (TOKEN_RE.match(token) and CHAT_RE.match(chat)):
-        print("Не заданы корректные TELEGRAM_BOT_TOKEN и TELEGRAM_CHAT_ID (секреты репозитория).")
-        return 2
+    tg_enabled = bool(TOKEN_RE.match(token) and CHAT_RE.match(chat))
+    if not args.dry_run and not tg_enabled:
+        print("Telegram не настроен (нет секретов TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID): обновляю только сайт.")
 
     seen = load_state()
     site = load_site_leads()
     site_ids = {x["id"] for x in site}
     now = datetime.now(timezone.utc)
-    sent = skipped = 0
+    sent = skipped = added = 0
     failed = False
     for ch in channels:
         try:
@@ -359,23 +359,26 @@ def main() -> int:
             if lead["id"] in site_ids:  # уже есть на сайте (найдено вручную) — в Telegram не дублируем
                 seen[pid] = now.isoformat()
                 continue
-            ok, err = tg_send(token, chat, msg)
-            if not ok:
-                print(f"Telegram не принял {pid}: {err}. Остальное уйдёт при следующем запуске.")
-                failed = True
-                break
+            if tg_enabled:
+                ok, err = tg_send(token, chat, msg)
+                if not ok:
+                    print(f"Telegram не принял {pid}: {err}. Остальное уйдёт при следующем запуске.")
+                    failed = True
+                    break
+                sent += 1
+                time.sleep(1.1)
             seen[pid] = now.isoformat()
             site.append(lead)
             site_ids.add(lead["id"])
-            sent += 1
-            time.sleep(1.1)
+            added += 1
+            print(f"  + {pid} [{v.level}] {lead['role']}")
         if failed:
             break
     if not args.dry_run:
         save_state(seen, int(cfg["keep_state_days"]))
-        if sent:
+        if added:
             save_site_leads(site)
-    print(f"Отправлено: {sent}, отсеяно: {skipped}")
+    print(f"Добавлено на сайт: {added}, отправлено в Telegram: {sent}, отсеяно: {skipped}")
     return 1 if failed else 0
 
 
