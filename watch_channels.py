@@ -26,6 +26,9 @@ from bs4 import BeautifulSoup
 HERE = Path(__file__).resolve().parent
 CONFIG = HERE / "config.json"
 STATE = HERE / "state" / "seen.json"
+SITE_LEADS = HERE / "docs" / "leads.json"
+SITE_LEADS_MAX = 1000
+MSK = timezone(timedelta(hours=3))
 UA = "Mozilla/5.0 (compatible; lead-watch/1.0)"
 TOKEN_RE = re.compile(r"^\d{5,}:[A-Za-z0-9_-]{30,}$")
 CHAT_RE = re.compile(r"^(-?\d{3,}|@[A-Za-z0-9_]{5,})$")
@@ -164,6 +167,60 @@ def format_message(post_id: str, text: str, v: Verdict) -> str:
     return "\n".join(out)[:4096]
 
 
+ROLE_LABEL_RE = re.compile(r"(?:должность|позиция|роль)\b\s*[:—–-]?\s*(.+)", re.I)
+LEAD_JUNK_RE = re.compile(r"^[^\wЁё]+")
+
+
+def extract_role(text: str) -> str:
+    lines = [LEAD_JUNK_RE.sub("", ln).strip() for ln in text.splitlines()]
+    lines = [ln for ln in lines if ln]
+    for i, ln in enumerate(lines[:12]):
+        if re.fullmatch(r"(?:должность|позиция|роль)\s*:?", ln, re.I) and i + 1 < len(lines):
+            return lines[i + 1][:120]
+        m = ROLE_LABEL_RE.match(ln)
+        if m:
+            return m.group(1).strip()[:120]
+    for ln in lines[:12]:
+        if ROLE_RE.search(ln) and len(ln) <= 80 and not re.match(r"(о\s+)?компани", ln, re.I):
+            return ln[:120]
+    return (lines[0] if lines else "Вакансия")[:120]
+
+
+def site_lead(post_id: str, text: str, v: Verdict, now: datetime) -> dict:
+    lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
+    body = " ".join(lines)
+    return {
+        "id": "tg-" + post_id.replace("/", "-"),
+        "url": f"https://t.me/{post_id}",
+        "role": extract_role(text),
+        "platform": "Telegram-чат",
+        "client": "",
+        "budget": v.low,
+        "summary": body[:400] + ("…" if len(body) > 400 else ""),
+        "level": v.level,
+        "verdictText": "Подходит" if v.level == "ok" else "Уточнить: " + v.reason,
+        "createdAt": now.isoformat().replace("+00:00", "Z"),
+        "day": now.astimezone(MSK).date().isoformat(),
+        "source": "bot",
+    }
+
+
+def load_site_leads() -> list[dict]:
+    if not SITE_LEADS.is_file():
+        return []
+    data = json.loads(SITE_LEADS.read_text(encoding="utf-8"))
+    items = data.get("leads", []) if isinstance(data, dict) else []
+    return [x for x in items if isinstance(x, dict) and isinstance(x.get("id"), str)]
+
+
+def save_site_leads(items: list[dict]) -> None:
+    items = sorted(items, key=lambda x: str(x.get("createdAt", "")), reverse=True)[:SITE_LEADS_MAX]
+    SITE_LEADS.parent.mkdir(parents=True, exist_ok=True)
+    tmp = SITE_LEADS.with_suffix(".tmp")
+    tmp.write_text(json.dumps({"leads": items}, ensure_ascii=False, indent=1), encoding="utf-8")
+    os.replace(tmp, SITE_LEADS)
+
+
 # ---------- сеть ----------
 
 def fetch(url: str) -> str:
@@ -269,6 +326,8 @@ def main() -> int:
         return 2
 
     seen = load_state()
+    site = load_site_leads()
+    site_ids = {x["id"] for x in site}
     now = datetime.now(timezone.utc)
     sent = skipped = 0
     failed = False
@@ -293,8 +352,12 @@ def main() -> int:
                     print(f"  пропуск {pid}: {v.reason}")
                 continue
             msg = format_message(pid, text, v)
+            lead = site_lead(pid, text, v, now)
             if args.dry_run:
-                print(f"  ОТПРАВИЛ БЫ {pid} [{v.level}]\n{msg}\n")
+                print(f"  ОТПРАВИЛ БЫ {pid} [{v.level}] роль на сайте: {lead['role']}\n{msg}\n")
+                continue
+            if lead["id"] in site_ids:  # уже есть на сайте (найдено вручную) — в Telegram не дублируем
+                seen[pid] = now.isoformat()
                 continue
             ok, err = tg_send(token, chat, msg)
             if not ok:
@@ -302,12 +365,16 @@ def main() -> int:
                 failed = True
                 break
             seen[pid] = now.isoformat()
+            site.append(lead)
+            site_ids.add(lead["id"])
             sent += 1
             time.sleep(1.1)
         if failed:
             break
     if not args.dry_run:
         save_state(seen, int(cfg["keep_state_days"]))
+        if sent:
+            save_site_leads(site)
     print(f"Отправлено: {sent}, отсеяно: {skipped}")
     return 1 if failed else 0
 

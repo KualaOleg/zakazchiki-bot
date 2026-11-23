@@ -34,5 +34,5 @@ jobs:
           git config user.name "lead-bot"
           git config user.email "lead-bot@users.noreply.github.com"
           [ -f state/seen.json ] || exit 0
-          git add state/seen.json
+          git add state/seen.json docs/leads.json
           git diff --cached --quiet || (git commit -m "state: просмотренные посты" && git push)

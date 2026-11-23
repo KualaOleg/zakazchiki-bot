@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Бриф по заказчикам</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Unbounded:wght@500;700&display=swap">
+<style>
+/* Layout: strip of key terms on top, then brief (left) and lead checker (right); lead log spans the full width below. */
+:root {
+  --bg: #f3f5f8;
+  --surface: #ffffff;
+  --fg: #17202b;
+  --muted: #5a6575;
+  --line: #d9dfe7;
+  --accent: #3550c8;
+  --accent-soft: #e6eafb;
+  --ok: #1f7a4a;   --ok-soft: #e2f3e9;
+  --warn: #9a6200; --warn-soft: #fbf0d9;
+  --bad: #b3261e;  --bad-soft: #fbe4e2;
+  --font-display: "Unbounded", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Onest", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11161d; --surface: #19202a; --fg: #e6ebf2; --muted: #9aa5b4; --line: #2c3643;
+    --accent: #8ea2ff; --accent-soft: #232c4a;
+    --ok: #6fd39c; --ok-soft: #173426; --warn: #f0be5c; --warn-soft: #3a2d12; --bad: #ff8f86; --bad-soft: #401b19;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11161d; --surface: #19202a; --fg: #e6ebf2; --muted: #9aa5b4; --line: #2c3643;
+  --accent: #8ea2ff; --accent-soft: #232c4a;
+  --ok: #6fd39c; --ok-soft: #173426; --warn: #f0be5c; --warn-soft: #3a2d12; --bad: #ff8f86; --bad-soft: #401b19;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--fg);
+  font: 15px/1.55 var(--font-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 28px; }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+h1 { font: 700 clamp(24px, 4vw, 34px)/1.15 var(--font-display); letter-spacing: -0.01em; }
+h2 { font: 600 19px/1.3 var(--font-body); }
+h3 { font: 600 15px/1.35 var(--font-body); }
+p { margin: 0; }
+.lede { color: var(--muted); max-width: 64ch; margin-top: 8px; }
+.label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+
+.terms { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.term { background: var(--surface); padding: 16px 18px; display: grid; gap: 4px; align-content: start; }
+.term b { font: 700 20px/1.2 var(--font-display); font-variant-numeric: tabular-nums; }
+.term span:last-child { color: var(--muted); font-size: 13.5px; }
+
+.main { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+.brief { display: grid; gap: 26px; }
+.block { display: grid; gap: 10px; }
+.block ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+.block li::marker { color: var(--muted); }
+.roles { display: grid; gap: 8px; }
+.role { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.chip { display: inline-block; padding: 3px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-weight: 600; font-size: 14px; }
+.role small { color: var(--muted); font-size: 13.5px; }
+.stop li::marker { content: "✕  "; color: var(--bad); }
+.stop { padding-left: 22px !important; }
+.note { font-size: 13.5px; color: var(--muted); border-left: 2px solid var(--line); padding-left: 10px; }
+.quote { font-size: 14px; color: var(--muted); font-style: italic; }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; display: grid; gap: 16px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); }
+form { display: grid; gap: 12px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.field { display: grid; gap: 4px; min-width: 0; }
+.field label, .field legend { font-size: 13px; font-weight: 600; color: var(--muted); }
+input[type="text"], input[type="url"], select, textarea {
+  width: 100%; font: inherit; color: var(--fg); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px;
+}
+textarea { resize: vertical; min-height: 64px; }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 6px; }
+.checks { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.checks label { display: flex; gap: 6px; align-items: center; font-size: 14px; cursor: pointer; }
+.hint { font-size: 12.5px; color: var(--muted); }
+
+.verdict { border-radius: 8px; padding: 10px 12px; font-weight: 600; display: flex; gap: 8px; align-items: center; }
+.verdict::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex: none; }
+.lv-ok { background: var(--ok-soft); color: var(--ok); }
+.lv-warn { background: var(--warn-soft); color: var(--warn); }
+.lv-bad { background: var(--bad-soft); color: var(--bad); }
+.lv-none { background: var(--bg); color: var(--muted); }
+pre.msg { margin: 0; white-space: pre-wrap; word-break: break-word; font: 14px/1.5 var(--font-body); background: var(--bg); border: 1px dashed var(--line); border-radius: 8px; padding: 10px 12px; min-height: 3em; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+button { font: inherit; font-weight: 600; font-size: 14px; border-radius: 8px; padding: 8px 14px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--fg); }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+button.small { padding: 4px 10px; font-size: 13px; }
+button.danger { color: var(--bad); }
+
+.log { display: grid; gap: 14px; }
+.log-head { display: flex; justify-content: space-between; align-items: end; gap: 12px; flex-wrap: wrap; }
+.progress { display: grid; gap: 6px; min-width: min(100%, 320px); }
+.bar { position: relative; height: 8px; background: var(--line); border-radius: 999px; overflow: hidden; }
+.bar i { position: absolute; inset: 0 auto 0 0; background: var(--accent); border-radius: 999px; transition: width .3s; }
+.progress .label { display: flex; justify-content: space-between; gap: 8px; font-variant-numeric: tabular-nums; }
+.tabs { display: flex; gap: 6px; }
+.tabs button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.status { font-size: 13.5px; color: var(--muted); }
+.leads { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 12px; }
+.lead { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.lead-top { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.pill { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+.lead time { font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.lead pre.msg { border-style: solid; }
+.empty { border: 1px dashed var(--line); border-radius: var(--radius); padding: 24px; color: var(--muted); text-align: center; }
+
+@media (max-width: 900px) {
+  .main { grid-template-columns: minmax(0, 1fr); }
+  .panel { position: static; }
+  .terms { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 480px) {
+  .terms { grid-template-columns: minmax(0, 1fr); }
+  .row2 { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <span class="label">Поиск проектов для контент-специалиста</span>
+    <h1>Бриф по заказчикам</h1>
+    <p class="lede">Собрано из двух голосовых от 23 ноября 2026. Кого искать, где, что сразу отсекать и в каком виде отправлять найденное.</p>
+  </header>
+
+  <section class="terms" aria-label="Ключевые условия">
+    <div class="term"><span class="label">Объём</span><b>20–30 в день</b><span>Первые две недели, потом поток спадёт</span></div>
+    <div class="term"><span class="label">Бюджет проекта</span><b>от 60 000 ₽</b><span>В месяц. Ниже 50 000 ₽ — сразу мимо</span></div>
+    <div class="term"><span class="label">Оплата за поиск</span><b>5–7 тыс. ₽</b><span>Период оплаты в голосовых не назван</span></div>
+    <div class="term"><span class="label">Формат</span><b>Ссылка + суть</b><span>Условия кратко, своими словами</span></div>
+  </section>
+
+  <div class="main">
+    <article class="brief">
+      <section class="block">
+        <h2>Кого ищут заказчики</h2>
+        <div class="roles">
+          <div class="role"><span class="chip">Контент-маркетолог</span></div>
+          <div class="role"><span class="chip">Продюсер</span><span class="chip">Продюсер по контенту</span></div>
+          <div class="role"><span class="chip">Пишущий редактор / автор текстов</span><small>например, бренд-медиа или компания ищет редактора</small></div>
+          <div class="role"><span class="chip">SMM-специалист</span><small>подходит, если бюджет не низкий</small></div>
+          <div class="role"><span class="chip">Сценарист</span><small>особенно пакетные сценарии</small></div>
+        </div>
+        <p class="note">Клиент обещал дополнительно прислать ключевые слова текстом, список может расшириться.</p>
+      </section>
+
+      <section class="block">
+        <h2>Какие заказчики нужны</h2>
+        <ul>
+          <li><b>В приоритете частные заказчики</b>: предприниматели, которые пишут от своего лица.</li>
+          <li><b>Психологи и психоаналитики</b> — отдельно отмечены как очень интересные.</li>
+          <li><b>Компании</b> тоже подходят, в том числе бренд-медиа, но без многоэтапного отбора.</li>
+        </ul>
+      </section>
+
+      <section class="block">
+        <h2>Где искать</h2>
+        <ul>
+          <li><b>Telegram-чаты</b> с открытыми вакансиями.</li>
+          <li><b>Авито</b> — особенно интересен, объявления от первого лица, а не от компаний.</li>
+          <li><b>Профи.ру</b> — частные заказчики.</li>
+          <li><b>Другие биржи</b> того же типа.</li>
+        </ul>
+      </section>
+
+      <section class="block">
+        <h2>Сразу мимо</h2>
+        <ul class="stop">
+          <li>В вакансии есть тестовое задание.</li>
+          <li>Нужно заполнить анкету.</li>
+          <li>Чувствуется много этапов отбора, например три этапа собеседований.</li>
+          <li>Чек ниже 50 000 ₽ в месяц.</li>
+          <li>SMM с низким бюджетом.</li>
+        </ul>
+      </section>
+
+      <section class="block">
+        <h2>Как отправлять</h2>
+        <ul>
+          <li>Ссылка на заказчика или вакансию.</li>
+          <li>Коротко, своими словами: кого ищут, условия, бюджет.</li>
+        </ul>
+        <p class="quote">«…чтобы мне не приходилось читать полотно вакансии полностью».</p>
+      </section>
+    </article>
+
+    <aside class="panel" aria-labelledby="check-title">
+      <div>
+        <h2 id="check-title">Проверить вакансию</h2>
+        <p class="hint">Заполни поля, и внизу появится вердикт и готовый текст для отправки.</p>
+      </div>
+      <form id="lead-form" novalidate>
+        <div class="field">
+          <label for="f-url">Ссылка на заказчика или вакансию</label>
+          <input id="f-url" type="url" placeholder="https://t.me/… или ссылка на Авито / Профи.ру" autocomplete="off">
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="f-role">Кого ищут</label>
+            <select id="f-role"></select>
+          </div>
+          <div class="field">
+            <label for="f-platform">Где нашёл</label>
+            <select id="f-platform"></select>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="f-client">Заказчик</label>
+            <select id="f-client"></select>
+          </div>
+          <div class="field">
+            <label for="f-budget">Бюджет, ₽ в месяц</label>
+            <input id="f-budget" type="text" inputmode="numeric" placeholder="например, 70 000 или 60к" autocomplete="off">
+          </div>
+        </div>
+        <p class="hint" id="budget-hint">Для вилки берётся нижняя граница. Пусто — бюджет не указан.</p>
+        <div class="field">
+          <label for="f-summary">Условия кратко, своими словами</label>
+          <textarea id="f-summary" rows="3" placeholder="Например: эксперт-психолог, 12 постов и 4 рилса в месяц, удалённо, старт сразу"></textarea>
+        </div>
+        <fieldset>
+          <legend>Стоп-факторы в вакансии</legend>
+          <div class="checks">
+            <label><input type="checkbox" id="f-test" value="тестовое задание"> Тестовое</label>
+            <label><input type="checkbox" id="f-form" value="анкета"> Анкета</label>
+            <label><input type="checkbox" id="f-stages" value="много этапов отбора"> Много этапов</label>
+          </div>
+        </fieldset>
+        <div id="verdict" class="verdict lv-none" role="status">Заполни бюджет и проверь стоп-факторы</div>
+        <pre class="msg" id="preview" aria-label="Текст для отправки"></pre>
+        <div class="actions">
+          <button type="submit" class="primary" id="btn-add">Добавить в список</button>
+          <button type="button" id="btn-copy">Скопировать текст</button>
+          <button type="button" id="btn-reset">Очистить</button>
+        </div>
+        <p class="hint" id="form-msg" aria-live="polite"></p>
+      </form>
+    </aside>
+  </div>
+
+  <section class="log" aria-labelledby="log-title">
+    <div class="log-head">
+      <div>
+        <h2 id="log-title">Найденные заказчики</h2>
+        <p class="status" id="store-status">Загружаю список…</p>
+      </div>
+      <div class="progress" aria-label="План на сегодня">
+        <div class="label"><span>Сегодня подходящих</span><span id="today-count">0 из 20–30</span></div>
+        <div class="bar"><i id="today-bar" style="width:0%"></i></div>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="tabs" role="group" aria-label="Период">
+        <button type="button" class="small" id="tab-today" aria-pressed="true">Сегодня</button>
+        <button type="button" class="small" id="tab-all" aria-pressed="false">Все</button>
+      </div>
+      <button type="button" class="small" id="btn-copy-day">Скопировать подходящие за сегодня</button>
+    </div>
+    <div class="leads" id="leads"></div>
+  </section>
+</div>
+
+<script>
+const ROLES = ["Контент-маркетолог", "Продюсер", "Продюсер по контенту", "Редактор / автор текстов", "SMM-специалист", "Сценарист", "Другая роль"];
+const PLATFORMS = ["Telegram-чат", "Авито", "Профи.ру", "Другая биржа", "Другое"];
+const CLIENTS = ["Предприниматель (частный)", "Психолог / психоаналитик", "Другой частный заказчик", "Компания / бренд-медиа"];
+const BUDGET_FLOOR = 50000;
+const BUDGET_TARGET = 60000;
+const DAY_GOAL_MIN = 20, DAY_GOAL_MAX = 30;
+const LOCAL_KEY = "brief-leads-v1";
+
+// "70 000", "60к", "60-80 тыс", "от 65000" -> lower bound in rubles; bare numbers under 1000 are read as thousands.
+function parseBudget(raw) {
+  const s = String(raw || "").toLowerCase().replace(/[\s ]/g, "");
+  const m = s.match(/(\d+(?:[.,]\d+)?)(тыс|к|k|т)?/);
+  if (!m) return null;
+  let n = parseFloat(m[1].replace(",", "."));
+  if (!Number.isFinite(n) || n <= 0) return null;
+  if (m[2] || n < 1000) n *= 1000;
+  return Math.round(n);
+}
+
+function judge(budget, flags) {
+  if (flags.length) return { level: "bad", text: "Не подходит: " + flags.join(", ") };
+  if (budget == null) return { level: "warn", text: "Бюджет не указан, уточнить" };
+  if (budget < BUDGET_FLOOR) return { level: "bad", text: "Не подходит: бюджет ниже 50 000 ₽" };
+  if (budget < BUDGET_TARGET) return { level: "warn", text: "Пограничный: ниже целевых 60 000 ₽" };
+  return { level: "ok", text: "Подходит" };
+}
+
+const rub = n => n.toLocaleString("ru-RU").replace(/ /g, " ") + " ₽";
+
+function formatLead(l) {
+  const lines = [];
+  if (l.url) lines.push(l.url);
+  lines.push([l.role, l.client, l.platform].filter(Boolean).join(" · "));
+  lines.push("Бюджет: " + (l.budget != null ? rub(l.budget) + "/мес" : "не указан"));
+  if (l.summary) lines.push("Условия: " + l.summary);
+  return lines.join("\n");
+}
+
+const localDay = d => { const z = n => String(n).padStart(2, "0"); return d.getFullYear() + "-" + z(d.getMonth() + 1) + "-" + z(d.getDate()); };
+
+/* ---------- form ---------- */
+const $ = id => document.getElementById(id);
+function fillSelect(el, items) { for (const v of items) { const o = document.createElement("option"); o.value = v; o.textContent = v; el.append(o); } }
+fillSelect($("f-role"), ROLES);
+fillSelect($("f-platform"), PLATFORMS);
+fillSelect($("f-client"), CLIENTS);
+const flagEls = ["f-test", "f-form", "f-stages"].map($);
+
+function readForm() {
+  const budgetRaw = $("f-budget").value.trim();
+  const lead = {
+    url: $("f-url").value.trim(),
+    role: $("f-role").value,
+    platform: $("f-platform").value,
+    client: $("f-client").value,
+    budget: parseBudget(budgetRaw),
+    budgetRaw,
+    summary: $("f-summary").value.trim().replace(/\s+/g, " "),
+    flags: flagEls.filter(e => e.checked).map(e => e.value),
+  };
+  lead.verdict = judge(lead.budget, lead.flags);
+  return lead;
+}
+
+function updatePreview() {
+  const l = readForm();
+  const v = $("verdict");
+  v.className = "verdict lv-" + l.verdict.level;
+  v.textContent = l.verdict.text;
+  $("preview").textContent = formatLead(l);
+  $("budget-hint").textContent = l.budgetRaw && l.budget == null
+    ? "Не понял сумму. Напиши числом, например 70 000 или 70к."
+    : l.budget != null ? "Считаю как " + rub(l.budget) + " в месяц. Для вилки берётся нижняя граница."
+    : "Для вилки берётся нижняя граница. Пусто — бюджет не указан.";
+  $("btn-add").disabled = l.verdict.level === "bad" || !canWrite;
+}
+$("lead-form").addEventListener("input", updatePreview);
+$("lead-form").addEventListener("change", updatePreview);
+
+function say(text) { $("form-msg").textContent = text; }
+
+async function copyText(text, okMsg) {
+  try { await navigator.clipboard.writeText(text); say(okMsg); }
+  catch {
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.append(ta); ta.select();
+    let ok = false; try { ok = document.execCommand("copy"); } catch {}
+    ta.remove();
+    say(ok ? okMsg : "Браузер не дал скопировать. Выдели текст вручную.");
+  }
+}
+$("btn-copy").addEventListener("click", () => copyText($("preview").textContent, "Текст скопирован."));
+$("btn-reset").addEventListener("click", () => { $("lead-form").reset(); say(""); updatePreview(); });
+
+$("lead-form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const l = readForm();
+  if (l.verdict.level === "bad") return;
+  if (!l.url) { say("Добавь ссылку на заказчика: без неё клиенту не с чем работать."); $("f-url").focus(); return; }
+  if (!/^https?:\/\//i.test(l.url)) { say("Ссылка должна начинаться с https://"); $("f-url").focus(); return; }
+  if (leads.some(x => x.url === l.url)) { say("Эта ссылка уже есть в списке."); return; }
+  const now = new Date();
+  const doc = {
+    url: l.url, role: l.role, platform: l.platform, client: l.client,
+    budget: l.budget, summary: l.summary, level: l.verdict.level, verdictText: l.verdict.text,
+    createdAt: now.toISOString(), day: localDay(now),
+  };
+  $("btn-add").disabled = true;
+  try {
+    await store.add(doc);
+    $("lead-form").reset();
+    say("Добавлено в список.");
+  } catch (err) {
+    say(err && err.code === "quota_exceeded" ? "Список переполнен: удали старые записи." : "Не получилось сохранить. Попробуй ещё раз.");
+  }
+  updatePreview();
+});
+
+/* ---------- storage: leads.json from the bot + this browser's own additions ---------- */
+const HIDDEN_KEY = "brief-hidden-v1";
+const REFRESH_MS = 5 * 60 * 1000;
+let leads = [];
+let shared = [];
+let local = [];
+let hidden = new Set();
+let canWrite = true;
+let view = "today";
+
+function readJSON(key, fallback) { try { const v = JSON.parse(localStorage.getItem(key) || "null"); return v ?? fallback; } catch { return fallback; } }
+function writeJSON(key, v) { try { localStorage.setItem(key, JSON.stringify(v)); } catch {} }
+
+function merge() {
+  const urls = new Set(local.map(l => l.url));
+  leads = [...local, ...shared.filter(l => !hidden.has(l.id) && !urls.has(l.url))];
+  render();
+}
+
+const store = {
+  async add(doc) {
+    local = [{ id: "l" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), local: true, ...doc }, ...local];
+    writeJSON(LOCAL_KEY, local); merge();
+  },
+  async remove(id) {
+    if (local.some(l => l.id === id)) { local = local.filter(l => l.id !== id); writeJSON(LOCAL_KEY, local); }
+    else { hidden.add(id); writeJSON(HIDDEN_KEY, [...hidden]); }
+    merge();
+  },
+};
+
+async function loadShared() {
+  try {
+    const r = await fetch("leads.json?t=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const data = await r.json();
+    const list = Array.isArray(data && data.leads) ? data.leads : [];
+    shared = list.filter(l => l && typeof l.id === "string" && typeof l.url === "string" && /^https:\/\//.test(l.url)).slice(0, 2000);
+    const t = new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+    $("store-status").textContent = "Вакансии от бота обновлены в " + t + ". Добавленные вручную хранятся только в этом браузере.";
+  } catch {
+    $("store-status").textContent = "Не удалось загрузить вакансии от бота. Видны только добавленные вручную.";
+  }
+  merge();
+}
+
+function initStore() {
+  const l = readJSON(LOCAL_KEY, []);
+  local = Array.isArray(l) ? l : [];
+  const h = readJSON(HIDDEN_KEY, []);
+  hidden = new Set(Array.isArray(h) ? h.filter(x => typeof x === "string") : []);
+  merge();
+  loadShared();
+  setInterval(loadShared, REFRESH_MS);
+}
+
+/* ---------- log ---------- */
+const LEVEL_LABEL = { ok: "Подходит", warn: "Уточнить", bad: "Не подходит" };
+
+function render() {
+  const today = localDay(new Date());
+  const sorted = [...leads].sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+  const todayGood = sorted.filter(l => l.day === today && l.level === "ok");
+  $("today-count").textContent = todayGood.length + " из " + DAY_GOAL_MIN + "–" + DAY_GOAL_MAX;
+  $("today-bar").style.width = Math.min(100, todayGood.length / DAY_GOAL_MIN * 100) + "%";
+
+  const shown = view === "today" ? sorted.filter(l => l.day === today) : sorted;
+  const box = $("leads");
+  box.replaceChildren();
+  if (!shown.length) {
+    const e = document.createElement("div");
+    e.className = "empty";
+    e.textContent = view === "today"
+      ? "Сегодня пока никого. Проверь вакансию в форме выше и нажми «Добавить в список»."
+      : "Список пуст. Первая запись появится после «Добавить в список».";
+    box.append(e);
+    return;
+  }
+  for (const l of shown) box.append(leadCard(l));
+}
+
+function leadCard(l) {
+  const card = document.createElement("article");
+  card.className = "lead";
+  const top = document.createElement("div"); top.className = "lead-top";
+  const pill = document.createElement("span");
+  const lvl = LEVEL_LABEL[l.level] ? l.level : "warn";
+  pill.className = "pill lv-" + lvl; pill.textContent = LEVEL_LABEL[lvl];
+  if (l.verdictText) pill.title = String(l.verdictText);
+  const t = document.createElement("time");
+  const d = new Date(l.createdAt);
+  if (!isNaN(d)) { t.dateTime = d.toISOString(); t.textContent = d.toLocaleString("ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }); }
+  top.append(pill, t);
+
+  const msg = document.createElement("pre"); msg.className = "msg";
+  const safe = { url: /^https?:\/\//i.test(String(l.url)) ? String(l.url) : "", role: str(l.role), client: str(l.client), platform: str(l.platform),
+                 budget: Number.isFinite(l.budget) ? l.budget : null, summary: str(l.summary) };
+  msg.textContent = formatLead(safe);
+
+  const acts = document.createElement("div"); acts.className = "actions";
+  if (safe.url) {
+    const a = document.createElement("a"); a.href = safe.url; a.target = "_blank"; a.rel = "noopener noreferrer";
+    a.textContent = "Открыть"; a.className = "small"; a.style.alignSelf = "center"; a.style.color = "var(--accent)"; a.style.fontWeight = "600"; a.style.fontSize = "13px";
+    acts.append(a);
+  }
+  const copy = document.createElement("button"); copy.type = "button"; copy.className = "small"; copy.textContent = "Копировать";
+  copy.addEventListener("click", () => copyText(msg.textContent, "Текст скопирован."));
+  acts.append(copy);
+  if (safe.url) {
+    const tg = document.createElement("a");
+    tg.href = "https://t.me/share/url?url=" + encodeURIComponent(safe.url) + "&text=" + encodeURIComponent(msg.textContent.replace(safe.url + "\n", ""));
+    tg.target = "_blank"; tg.rel = "noopener noreferrer"; tg.textContent = "В Telegram";
+    tg.style.alignSelf = "center"; tg.style.color = "var(--accent)"; tg.style.fontWeight = "600"; tg.style.fontSize = "13px";
+    acts.append(tg);
+  }
+  if (canWrite) {
+    const del = document.createElement("button"); del.type = "button"; del.className = "small danger"; const delLabel = l.local ? "Удалить" : "Скрыть"; del.textContent = delLabel;
+    let armed = false;
+    del.addEventListener("click", async () => {
+      if (!armed) { armed = true; del.textContent = l.local ? "Точно удалить?" : "Точно скрыть?"; setTimeout(() => { armed = false; del.textContent = delLabel; }, 3000); return; }
+      del.disabled = true;
+      try { await store.remove(l.id); } catch { del.disabled = false; say("Не получилось удалить."); }
+    });
+    acts.append(del);
+  }
+  card.append(top, msg, acts);
+  return card;
+}
+const str = v => (typeof v === "string" ? v : "");
+
+function setView(v) {
+  view = v;
+  $("tab-today").setAttribute("aria-pressed", String(v === "today"));
+  $("tab-all").setAttribute("aria-pressed", String(v === "all"));
+  render();
+}
+$("tab-today").addEventListener("click", () => setView("today"));
+$("tab-all").addEventListener("click", () => setView("all"));
+$("btn-copy-day").addEventListener("click", () => {
+  const today = localDay(new Date());
+  const list = leads.filter(l => l.day === today && l.level === "ok")
+    .sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
+  if (!list.length) { say("Сегодня подходящих пока нет."); return; }
+  const text = list.map((l, i) => (i + 1) + ". " + formatLead({ ...l, url: str(l.url), summary: str(l.summary) })).join("\n\n");
+  copyText(text, "Скопировано подходящих за сегодня: " + list.length + ".");
+});
+
+updatePreview();
+render();
+initStore();
+</script>
+</body>
+</html>
