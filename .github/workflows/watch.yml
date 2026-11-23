@@ -1,0 +1,38 @@
+name: watch-channels
+
+on:
+  schedule:
+    - cron: "7,37 * * * *"   # каждые 30 минут (UTC); GitHub может запускать с опозданием
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: watch-channels
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Проверить каналы и отправить новые вакансии
+        run: python watch_channels.py
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      - name: Сохранить список уже просмотренных постов
+        if: always()
+        run: |
+          git config user.name "lead-bot"
+          git config user.email "lead-bot@users.noreply.github.com"
+          [ -f state/seen.json ] || exit 0
+          git add state/seen.json
+          git diff --cached --quiet || (git commit -m "state: просмотренные посты" && git push)
