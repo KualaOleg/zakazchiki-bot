@@ -60,6 +60,23 @@ VACANCY_SIGNALS = [
 ]
 
 
+OFFICE_RE = re.compile(r"офис\w*|гибрид\w*", re.I)
+NO_OFFICE_RE = re.compile(
+    r"(?:без|вне|вместо|никакого|нет)\s+(?:\w+\s+){0,2}(?:офис|гибрид)"
+    r"|не\s+(?:нужно|надо|требуется|обязательно|придётся|придется|ходить|ездить)\s+(?:\w+\s+){0,3}(?:в\s+)?офис",
+    re.I,
+)
+
+
+def mentions_office(text: str) -> bool:
+    """Работа в офисе или гибрид. Отрицания («без офиса», «не нужно ездить в офис») не считаются."""
+    for m in OFFICE_RE.finditer(text):
+        ctx = text[max(0, m.start() - 45):m.end()]
+        if not NO_OFFICE_RE.search(ctx):
+            return True
+    return False
+
+
 def looks_like_vacancy(text: str) -> bool:
     return sum(1 for rx in VACANCY_SIGNALS if rx.search(text)) >= 2
 CLOSED_RE = re.compile(r"вакансия\s+закрыта", re.I)
@@ -145,6 +162,8 @@ def judge(text: str, min_budget: int, floor_budget: int) -> Verdict:
     for name, rx in STOP_RES.items():
         if rx.search(text):
             return Verdict(False, "skip", name)
+    if mentions_office(text):
+        return Verdict(False, "skip", "офис или гибрид")
     if not looks_like_vacancy(text):
         return Verdict(False, "skip", "не похоже на вакансию")
     low, high = parse_budget(text)
@@ -330,12 +349,19 @@ def save_site_leads(items: list[dict]) -> None:
 
 # ---------- сеть ----------
 
-def fetch(url: str) -> str:
+def fetch(url: str, attempts: int = 3) -> str:
     req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept-Language": "ru"})
-    with urllib.request.urlopen(req, timeout=25) as r:
-        if r.status != 200:
-            raise RuntimeError(f"HTTP {r.status}")
-        return r.read().decode("utf-8", "replace")
+    for i in range(attempts):
+        try:
+            with urllib.request.urlopen(req, timeout=25) as r:
+                if r.status != 200:
+                    raise RuntimeError(f"HTTP {r.status}")
+                return r.read().decode("utf-8", "replace")
+        except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
+            if i == attempts - 1:
+                raise
+            time.sleep(3 * (i + 1))
+    raise RuntimeError("unreachable")
 
 
 def parse_channel(page: str) -> list[tuple[str, datetime | None, str, list[tuple[str, str]]]]:

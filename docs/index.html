@@ -192,6 +192,7 @@ button.danger { color: var(--bad); }
           <li>Чувствуется много этапов отбора, например три этапа собеседований.</li>
           <li>Чек ниже 50 000 ₽ в месяц.</li>
           <li>SMM с низким бюджетом.</li>
+          <li>Работа в офисе или гибрид.</li>
         </ul>
       </section>
 
@@ -250,6 +251,7 @@ button.danger { color: var(--bad); }
             <label><input type="checkbox" id="f-test" value="тестовое задание"> Тестовое</label>
             <label><input type="checkbox" id="f-form" value="анкета"> Анкета</label>
             <label><input type="checkbox" id="f-stages" value="много этапов отбора"> Много этапов</label>
+            <label><input type="checkbox" id="f-office" value="офис или гибрид"> Офис</label>
           </div>
         </fieldset>
         <div id="verdict" class="verdict lv-none" role="status">Заполни бюджет и проверь стоп-факторы</div>
@@ -336,7 +338,7 @@ function fillSelect(el, items) { for (const v of items) { const o = document.cre
 fillSelect($("f-role"), ROLES);
 fillSelect($("f-platform"), PLATFORMS);
 fillSelect($("f-client"), CLIENTS);
-const flagEls = ["f-test", "f-form", "f-stages"].map($);
+const flagEls = ["f-test", "f-form", "f-stages", "f-office"].map($);
 
 function readForm() {
   const budgetRaw = $("f-budget").value.trim();
