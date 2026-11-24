@@ -9,8 +9,14 @@
     "dddwork",
     "smmlancer",
     "normrabota",
-    "rabota_go"
+    "rabota_go",
+    "polevakansiy",
+    "freelancefam",
+    "chooseajob"
   ],
+  "expert_channels": {
+    "tinder_tm": "#эксперт"
+  },
   "min_budget": 60000,
   "floor_budget": 50000,
   "max_age_hours": 72,

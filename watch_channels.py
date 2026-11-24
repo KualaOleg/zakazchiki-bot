@@ -77,6 +77,19 @@ def mentions_office(text: str) -> bool:
     return False
 
 
+SELF_AD_RE = re.compile(
+    r"меня\s+зовут[^.!\n]{0,40}[.!,]?\s*(?:я\s*[—–-]?\s*)?(?:[\wЁё-]+\s+){0,2}"
+    r"(?:продюсер|smm|смм|копирайтер|сценарист|редактор|маркетолог|специалист|рилсмейкер|контент)",
+    re.I,
+)
+HIRING_RE = re.compile(r"\bищу\b(?!\s+(?:работу|проект|клиент|заказ))|\bищем\b|\bнужен\b|\bнужна\b|требуется", re.I)
+
+
+def is_self_ad(text: str) -> bool:
+    """Исполнитель рекламирует себя («Меня зовут…, я продюсер…») и никого не ищет."""
+    return bool(SELF_AD_RE.search(text)) and not HIRING_RE.search(text)
+
+
 def looks_like_vacancy(text: str) -> bool:
     return sum(1 for rx in VACANCY_SIGNALS if rx.search(text)) >= 2
 CLOSED_RE = re.compile(r"вакансия\s+закрыта", re.I)
@@ -155,7 +168,7 @@ class Verdict:
 def judge(text: str, min_budget: int, floor_budget: int) -> Verdict:
     if CLOSED_RE.search(text):
         return Verdict(False, "skip", "вакансия закрыта")
-    if RESUME_RE.search(text):
+    if RESUME_RE.search(text) or is_self_ad(text):
         return Verdict(False, "skip", "резюме, а не вакансия")
     if not ROLE_RE.search(text):
         return Verdict(False, "skip", "роль не из брифа")
@@ -275,8 +288,29 @@ def extract_contacts(text: str, links: list[tuple[str, str]], channel: str,
     return out
 
 
-def format_message(post_id: str, text: str, v: Verdict, contacts: list[str]) -> str:
-    role = extract_role(text)
+EXPERT_PROJECT_RE = re.compile(r"название\s+проекта\s*[«\"“]?([^»\"”\n]{3,80})", re.I)
+
+
+def expert_role(text: str) -> str:
+    """Для постов «эксперт ищет продюсера»: имя эксперта и проект."""
+    lines = [LEAD_JUNK_RE.sub("", HASHTAG_RE.sub("", ln)).strip() for ln in text.splitlines()]
+    lines = [ln for ln in lines if ln]
+    name = lines[0][:40] if lines else ""
+    project = ""
+    m = EXPERT_PROJECT_RE.search(text)
+    if m:
+        project = m.group(1).strip()
+    else:
+        for i, ln in enumerate(lines[:-1]):
+            if ln.lower().rstrip(":") == "проект":
+                project = lines[i + 1][:60]
+                break
+    role = "Продюсер для эксперта" + (f" {name}" if name else "") + (f" — {project}" if project else "")
+    return role[:120]
+
+
+def format_message(post_id: str, text: str, v: Verdict, contacts: list[str], role: str | None = None) -> str:
+    role = role or extract_role(text)
     desc = description(text, role)
     label = "✅ Подходит" if v.level == "ok" else "🟡 Уточнить: " + v.reason
     channel = post_id.split("/")[0]
@@ -311,8 +345,8 @@ def extract_role(text: str) -> str:
     return (lines[0] if lines else "Вакансия")[:120]
 
 
-def site_lead(post_id: str, text: str, v: Verdict, now: datetime, contacts: list[str]) -> dict:
-    role = extract_role(text)
+def site_lead(post_id: str, text: str, v: Verdict, now: datetime, contacts: list[str], role: str | None = None) -> dict:
+    role = role or extract_role(text)
     return {
         "id": "tg-" + post_id.replace("/", "-"),
         "url": f"https://t.me/{post_id}",
@@ -455,6 +489,9 @@ def main() -> int:
     cfg = json.loads(CONFIG.read_text(encoding="utf-8"))
     channels = [c for c in cfg["channels"] if re.fullmatch(r"[A-Za-z0-9_]{4,64}", c)]
     min_budget, floor_budget = int(cfg["min_budget"]), int(cfg["floor_budget"])
+    # каналы-«биржи», где эксперты сами ищут продюсера/специалиста: берём только посты с тегом эксперта
+    expert_tags = {k: str(v).lower() for k, v in cfg.get("expert_channels", {}).items()}
+    channels += [c for c in expert_tags if c not in channels and re.fullmatch(r"[A-Za-z0-9_]{4,64}", c)]
     max_age = timedelta(hours=int(cfg["max_age_hours"]))
 
     token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
@@ -483,7 +520,15 @@ def main() -> int:
             if when is None or now - when > max_age:
                 seen[pid] = now.isoformat()
                 continue
-            v = judge(text, min_budget, floor_budget)
+            role = None
+            if ch in expert_tags:
+                if expert_tags[ch] not in text.lower():
+                    v = Verdict(False, "skip", "не пост эксперта")
+                else:
+                    v = Verdict(True, "warn", "эксперт ищет продюсера, условия обсуждаются")
+                    role = expert_role(text)
+            else:
+                v = judge(text, min_budget, floor_budget)
             if not v.send:
                 skipped += 1
                 seen[pid] = now.isoformat()
@@ -491,8 +536,8 @@ def main() -> int:
                     print(f"  пропуск {pid}: {v.reason}")
                 continue
             contacts = extract_contacts(text, links, ch, boiler)
-            msg = format_message(pid, text, v, contacts)
-            lead = site_lead(pid, text, v, now, contacts)
+            msg = format_message(pid, text, v, contacts, role)
+            lead = site_lead(pid, text, v, now, contacts, role)
             if args.dry_run:
                 print(f"  ОТПРАВИЛ БЫ {pid} [{v.level}]\n{msg}\n")
                 continue
