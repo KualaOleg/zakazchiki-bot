@@ -45,7 +45,23 @@ STOP_RES = {
     "анкета": re.compile(r"анкет|google\s*-?\s*форм|forms\.gle|docs\.google\.com/forms", re.I),
     "много этапов отбора": re.compile(r"этап\w*\s+отбор|следующ\w+\s+этап|несколько\s+этап", re.I),
 }
-RESUME_RE = re.compile(r"#резюме|^\s*резюме\b|ищу\s+работу", re.I | re.M)
+RESUME_RE = re.compile(
+    r"#резюме|^\s*резюме\b|ищу\s+работу|ищу\s+(?:новых\s+)?(?:клиентов|проекты|заказы)|возьму\s+(?:в\s+работу|проект)"
+    r"|беру\s+(?:в\s+работу|проекты|новых)|^\s*я\s*[—–-]\s*[А-ЯЁA-Z]\w+\.",
+    re.I | re.M,
+)
+VACANCY_SIGNALS = [
+    re.compile(r"ваканси[яю]\b|ищем|ищу\s+(?:в\s+команду|специалист|smm|смм|копирайт|редактор|сценарист|продюсер|автор)|требуется|нужен\b|нужна\b|в\s+команду", re.I),
+    re.compile(r"обязанност|задачи|что\s+(?:нужно|предстоит)\s+делать|чем\s+предстоит", re.I),
+    re.compile(r"условия\b|мы\s+предлагаем|график|формат\s+работы|удал[её]нн?о|удал[её]нка|гибрид|в\s+офис", re.I),
+    re.compile(r"кому\s+писать|откликнуться|отклик\w*\s*:|пишите|резюме\s+(?:присылайте|отправляйте|в\s+лс)|контакт\w*\s*:", re.I),
+    re.compile(r"зарплат|оплат|з/п|\bзп\b|оклад|доход|ставк|бюджет|₽|руб", re.I),
+    re.compile(r"требования|ожидаем|опыт\s+(?:от|работы)|кого\s+ищем|навыки", re.I),
+]
+
+
+def looks_like_vacancy(text: str) -> bool:
+    return sum(1 for rx in VACANCY_SIGNALS if rx.search(text)) >= 2
 CLOSED_RE = re.compile(r"вакансия\s+закрыта", re.I)
 
 _NUM = r"\d{1,3}(?:[   .]\d{3})+|\d+(?:[.,]\d+)?"
@@ -129,6 +145,8 @@ def judge(text: str, min_budget: int, floor_budget: int) -> Verdict:
     for name, rx in STOP_RES.items():
         if rx.search(text):
             return Verdict(False, "skip", name)
+    if not looks_like_vacancy(text):
+        return Verdict(False, "skip", "не похоже на вакансию")
     low, high = parse_budget(text)
     if low is None:
         return Verdict(True, "warn", "бюджет не указан или только потолок", low, high)
@@ -143,37 +161,125 @@ def rub(n: int) -> str:
     return f"{n:,}".replace(",", " ") + " ₽"
 
 
-def format_message(post_id: str, text: str, v: Verdict) -> str:
-    lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
-    title = lines[0][:140] if lines else "Вакансия"
-    body = " ".join(lines[1:])
-    excerpt = body[:450] + ("…" if len(body) > 450 else "")
-    label = "✅ Подходит" if v.level == "ok" else "🟡 Уточнить: " + v.reason
+def budget_text(v: Verdict) -> str:
     if v.low:
-        budget = "от " + rub(v.low) + (" до " + rub(v.high) if v.high and v.high > v.low else "")
-    elif v.high:
-        budget = "до " + rub(v.high)
-    else:
-        budget = "не указан"
+        return "от " + rub(v.low) + (" до " + rub(v.high) if v.high and v.high > v.low else "")
+    if v.high:
+        return "до " + rub(v.high)
+    return ""
+
+
+def description(text: str, role: str, limit: int = 450) -> str:
+    """Текст поста без строки с ролью и служебных меток, в одну строку."""
+    lines = [LEAD_JUNK_RE.sub("", HASHTAG_RE.sub("", ln)).strip() for ln in text.splitlines()]
+    skip = {role.strip().lower(), "должность", "работодатель", "вакансия"}
+    kept = [ln for ln in lines if ln and ln.lower().rstrip(":") not in skip]
+    body = re.sub(r"\s+", " ", " ".join(kept)).strip()
+    return body[:limit] + ("…" if len(body) > limit else "")
+
+
+# ---------- контакты ----------
+
+USERNAME_RE = re.compile(r"(?<![\w.@/])@([A-Za-z][A-Za-z0-9_]{3,31})\b")
+EMAIL_RE = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+PHONE_RE = re.compile(r"(?<!\d)(?:\+7|8)[\s(-]*\d{3}[\s)-]*\d{3}[\s-]*\d{2}[\s-]*\d{2}(?!\d)")
+APPLY_TEXT_RE = re.compile(r"отклик|откликнуться|написать|связ|резюме|hr|рекрутер|apply|подать", re.I)
+TME_RE = re.compile(r"^https?://(?:t\.me|telegram\.me)/([A-Za-z][A-Za-z0-9_]{3,31})/?$", re.I)
+
+
+TME_TEXT_RE = re.compile(r"(?<![\w/])(?:https?://)?(?:t\.me|telegram\.me)/([A-Za-z][A-Za-z0-9_]{3,31})\b", re.I)
+
+
+def channel_boilerplate(posts: list[tuple], min_count: int = 3) -> set[str]:
+    """@username и ссылки, которые стоят в половине постов канала и больше: это подпись канала, а не работодатель."""
+    counts: dict[str, int] = {}
+    for _, _, text, links in posts:
+        names = {m.group(1).lower() for m in USERNAME_RE.finditer(text)}
+        names |= {m.group(1).lower() for href, _ in links if (m := TME_RE.match(href.strip()))}
+        names |= {clean_url(href.strip()).lower() for href, _ in links if href.strip().startswith("https://")}
+        for n in names:
+            counts[n] = counts.get(n, 0) + 1
+    threshold = max(min_count, len(posts) // 2)
+    return {n for n, c in counts.items() if c >= threshold}
+
+
+def clean_url(href: str) -> str:
+    p = urllib.parse.urlsplit(href)
+    return urllib.parse.urlunsplit((p.scheme, p.netloc, p.path, "", ""))
+
+
+def extract_contacts(text: str, links: list[tuple[str, str]], channel: str,
+                     ignore: set[str] = frozenset(), limit: int = 4) -> list[str]:
+    """Контакты для отклика: ссылки-кнопки «Откликнуться», @username, t.me-ссылки, почта, телефон.
+
+    Ссылки на сам канал, хештеги, посты канала и подписи канала (ignore) не считаются контактами.
+    """
+    out: list[str] = []
+
+    def add(item: str) -> None:
+        key = item.lower()
+        if item and key not in (x.lower() for x in out) and len(out) < limit:
+            out.append(item)
+
+    ch = channel.lower()
+    skip_names = {ch, "share", "s", "joinchat", "addlist"} | {x.lower() for x in ignore}
+    for href, label in links:
+        href = href.strip()
+        if href.lower().startswith("mailto:"):
+            add(href[7:].split("?")[0])
+            continue
+        if href.lower().startswith("tel:"):
+            add(href[4:])
+            continue
+        m = TME_RE.match(href)
+        if m:
+            if m.group(1).lower() not in skip_names:
+                add("@" + m.group(1))
+            continue
+        if not href.startswith("https://") or re.match(r"https://t\.me/", href, re.I):
+            continue
+        url = clean_url(href)
+        if url.lower() in skip_names:
+            continue
+        if APPLY_TEXT_RE.search(label) or re.search(r"vetka\.dnative\.ru|hh\.ru/vacancy", href, re.I):
+            add(url)
+    for m in USERNAME_RE.finditer(text):
+        if m.group(1).lower() not in skip_names:
+            add("@" + m.group(1))
+    for m in TME_TEXT_RE.finditer(text):
+        if m.group(1).lower() not in skip_names:
+            add("@" + m.group(1))
+    for m in EMAIL_RE.finditer(text):
+        add(m.group(0))
+    for m in PHONE_RE.finditer(text):
+        add(re.sub(r"[^\d+]", "", m.group(0)))
+    return out
+
+
+def format_message(post_id: str, text: str, v: Verdict, contacts: list[str]) -> str:
+    role = extract_role(text)
+    desc = description(text, role)
+    label = "✅ Подходит" if v.level == "ok" else "🟡 Уточнить: " + v.reason
     channel = post_id.split("/")[0]
     out = [
         f"<b>{html.escape(label)}</b>",
-        f"<b>{html.escape(title)}</b>",
-        html.escape("Бюджет: " + budget),
+        f"<b>Вакансия:</b> {html.escape(role)}",
+        f"<b>Описание работы:</b> {html.escape(desc or 'в посте по ссылке')}",
+        f"<b>ЗП:</b> {html.escape(budget_text(v) or 'не указана')}",
+        f"<b>Контакты:</b> {html.escape(', '.join(contacts) or 'в посте по ссылке')}",
+        f'<a href="https://t.me/{html.escape(post_id)}">Открыть пост</a> · @{html.escape(channel)}',
     ]
-    if excerpt:
-        out.append(html.escape(excerpt))
-    out.append(f'<a href="https://t.me/{html.escape(post_id)}">Открыть пост</a> · @{html.escape(channel)}')
     return "\n".join(out)[:4096]
 
 
 ROLE_LABEL_RE = re.compile(r"(?:должность|позиция|роль)\b\s*[:—–-]?\s*(.+)", re.I)
 LEAD_JUNK_RE = re.compile(r"^[^\wЁё]+")
+HASHTAG_RE = re.compile(r"#[\wЁё]+")
 
 
 def extract_role(text: str) -> str:
-    lines = [LEAD_JUNK_RE.sub("", ln).strip() for ln in text.splitlines()]
-    lines = [ln for ln in lines if ln]
+    lines = [LEAD_JUNK_RE.sub("", HASHTAG_RE.sub("", ln)).strip(" \t,;|") for ln in text.splitlines()]
+    lines = [ln for ln in lines if ln and ln.lower().rstrip(":") not in ("вакансия", "вакансии")]
     for i, ln in enumerate(lines[:12]):
         if re.fullmatch(r"(?:должность|позиция|роль)\s*:?", ln, re.I) and i + 1 < len(lines):
             return lines[i + 1][:120]
@@ -186,17 +292,18 @@ def extract_role(text: str) -> str:
     return (lines[0] if lines else "Вакансия")[:120]
 
 
-def site_lead(post_id: str, text: str, v: Verdict, now: datetime) -> dict:
-    lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
-    body = " ".join(lines)
+def site_lead(post_id: str, text: str, v: Verdict, now: datetime, contacts: list[str]) -> dict:
+    role = extract_role(text)
     return {
         "id": "tg-" + post_id.replace("/", "-"),
         "url": f"https://t.me/{post_id}",
-        "role": extract_role(text),
+        "role": role,
         "platform": "Telegram-чат",
         "client": "",
         "budget": v.low,
-        "summary": body[:400] + ("…" if len(body) > 400 else ""),
+        "budgetText": budget_text(v),
+        "contacts": ", ".join(contacts),
+        "summary": description(text, role, 400),
         "level": v.level,
         "verdictText": "Подходит" if v.level == "ok" else "Уточнить: " + v.reason,
         "createdAt": now.isoformat().replace("+00:00", "Z"),
@@ -231,18 +338,23 @@ def fetch(url: str) -> str:
         return r.read().decode("utf-8", "replace")
 
 
-def parse_channel(page: str) -> list[tuple[str, datetime | None, str]]:
+def parse_channel(page: str) -> list[tuple[str, datetime | None, str, list[tuple[str, str]]]]:
     soup = BeautifulSoup(page, "html.parser")
     posts = []
     for node in soup.select("div.tgme_widget_message[data-post]"):
         pid = node.get("data-post", "")
-        if not POST_ID_RE.match(pid):
+        if not POST_ID_RE.match(pid) or "service_message" in (node.get("class") or []):
             continue
         text_node = node.select_one(".tgme_widget_message_text")
         if text_node is None:
             continue
         for br in text_node.find_all("br"):
             br.replace_with("\n")
+        links = [(a.get("href", ""), a.get_text(" ", strip=True)) for a in text_node.find_all("a")]
+        # кнопки под постом («Откликнуться» и т.п.)
+        links += [(a.get("href", ""), a.get_text(" ", strip=True))
+                  for a in node.select(".tgme_widget_message_inline_button, .tgme_widget_message_inline_keyboard a")
+                  if a.get("href")]
         text = text_node.get_text()
         when = None
         t = node.select_one("time[datetime]")
@@ -251,7 +363,7 @@ def parse_channel(page: str) -> list[tuple[str, datetime | None, str]]:
                 when = datetime.fromisoformat(t["datetime"])
             except ValueError:
                 when = None
-        posts.append((pid, when, text))
+        posts.append((pid, when, text, links))
     return posts
 
 
@@ -338,7 +450,8 @@ def main() -> int:
             print(f"[{ch}] не загрузился: {e}")
             continue
         print(f"[{ch}] постов на странице: {len(posts)}")
-        for pid, when, text in posts:
+        boiler = channel_boilerplate(posts)
+        for pid, when, text, links in posts:
             if pid in seen:
                 continue
             if when is None or now - when > max_age:
@@ -351,10 +464,11 @@ def main() -> int:
                 if args.dry_run:
                     print(f"  пропуск {pid}: {v.reason}")
                 continue
-            msg = format_message(pid, text, v)
-            lead = site_lead(pid, text, v, now)
+            contacts = extract_contacts(text, links, ch, boiler)
+            msg = format_message(pid, text, v, contacts)
+            lead = site_lead(pid, text, v, now, contacts)
             if args.dry_run:
-                print(f"  ОТПРАВИЛ БЫ {pid} [{v.level}] роль на сайте: {lead['role']}\n{msg}\n")
+                print(f"  ОТПРАВИЛ БЫ {pid} [{v.level}]\n{msg}\n")
                 continue
             if lead["id"] in site_ids:  # уже есть на сайте (найдено вручную) — в Telegram не дублируем
                 seen[pid] = now.isoformat()

@@ -1,5 +1,16 @@
 {
-  "channels": ["dnative_job", "rabota_freelancee", "digital_jobster"],
+  "channels": [
+    "dnative_job",
+    "rabota_freelancee",
+    "digital_jobster",
+    "work_editor",
+    "vacancysmm",
+    "mediajobs_ru",
+    "dddwork",
+    "smmlancer",
+    "normrabota",
+    "rabota_go"
+  ],
   "min_budget": 60000,
   "floor_budget": 50000,
   "max_age_hours": 72,

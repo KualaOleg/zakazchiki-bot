@@ -237,8 +237,12 @@ button.danger { color: var(--bad); }
         </div>
         <p class="hint" id="budget-hint">Для вилки берётся нижняя граница. Пусто — бюджет не указан.</p>
         <div class="field">
-          <label for="f-summary">Условия кратко, своими словами</label>
+          <label for="f-summary">Описание работы, кратко</label>
           <textarea id="f-summary" rows="3" placeholder="Например: эксперт-психолог, 12 постов и 4 рилса в месяц, удалённо, старт сразу"></textarea>
+        </div>
+        <div class="field">
+          <label for="f-contacts">Контакты заказчика</label>
+          <input id="f-contacts" type="text" placeholder="@username, почта или телефон" autocomplete="off">
         </div>
         <fieldset>
           <legend>Стоп-факторы в вакансии</legend>
@@ -313,11 +317,14 @@ function judge(budget, flags) {
 const rub = n => n.toLocaleString("ru-RU").replace(/ /g, " ") + " ₽";
 
 function formatLead(l) {
-  const lines = [];
-  if (l.url) lines.push(l.url);
-  lines.push([l.role, l.client, l.platform].filter(Boolean).join(" · "));
-  lines.push("Бюджет: " + (l.budget != null ? rub(l.budget) + "/мес" : "не указан"));
-  if (l.summary) lines.push("Условия: " + l.summary);
+  const pay = l.budgetText || (l.budget != null ? rub(l.budget) + " в месяц" : "не указана");
+  const lines = [
+    "Вакансия: " + (l.role || "не указана"),
+    "Описание работы: " + (l.summary || "в посте по ссылке"),
+    "ЗП: " + pay,
+    "Контакты: " + (l.contacts || "в посте по ссылке"),
+  ];
+  if (l.url) lines.push("Ссылка: " + l.url);
   return lines.join("\n");
 }
 
@@ -341,6 +348,7 @@ function readForm() {
     budget: parseBudget(budgetRaw),
     budgetRaw,
     summary: $("f-summary").value.trim().replace(/\s+/g, " "),
+    contacts: $("f-contacts").value.trim().replace(/\s+/g, " "),
     flags: flagEls.filter(e => e.checked).map(e => e.value),
   };
   lead.verdict = judge(lead.budget, lead.flags);
@@ -388,7 +396,8 @@ $("lead-form").addEventListener("submit", async e => {
   const now = new Date();
   const doc = {
     url: l.url, role: l.role, platform: l.platform, client: l.client,
-    budget: l.budget, summary: l.summary, level: l.verdict.level, verdictText: l.verdict.text,
+    budget: l.budget, budgetText: l.budgetRaw, summary: l.summary, contacts: l.contacts,
+    level: l.verdict.level, verdictText: l.verdict.text,
     createdAt: now.toISOString(), day: localDay(now),
   };
   $("btn-add").disabled = true;
@@ -498,7 +507,8 @@ function leadCard(l) {
 
   const msg = document.createElement("pre"); msg.className = "msg";
   const safe = { url: /^https?:\/\//i.test(String(l.url)) ? String(l.url) : "", role: str(l.role), client: str(l.client), platform: str(l.platform),
-                 budget: Number.isFinite(l.budget) ? l.budget : null, summary: str(l.summary) };
+                 budget: Number.isFinite(l.budget) ? l.budget : null, summary: str(l.summary),
+                 contacts: str(l.contacts), budgetText: str(l.budgetText) };
   msg.textContent = formatLead(safe);
 
   const acts = document.createElement("div"); acts.className = "actions";
@@ -512,7 +522,7 @@ function leadCard(l) {
   acts.append(copy);
   if (safe.url) {
     const tg = document.createElement("a");
-    tg.href = "https://t.me/share/url?url=" + encodeURIComponent(safe.url) + "&text=" + encodeURIComponent(msg.textContent.replace(safe.url + "\n", ""));
+    tg.href = "https://t.me/share/url?url=" + encodeURIComponent(safe.url) + "&text=" + encodeURIComponent(msg.textContent.replace("\nСсылка: " + safe.url, ""));
     tg.target = "_blank"; tg.rel = "noopener noreferrer"; tg.textContent = "В Telegram";
     tg.style.alignSelf = "center"; tg.style.color = "var(--accent)"; tg.style.fontWeight = "600"; tg.style.fontSize = "13px";
     acts.append(tg);
@@ -545,7 +555,7 @@ $("btn-copy-day").addEventListener("click", () => {
   const list = leads.filter(l => l.day === today && l.level === "ok")
     .sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
   if (!list.length) { say("Сегодня подходящих пока нет."); return; }
-  const text = list.map((l, i) => (i + 1) + ". " + formatLead({ ...l, url: str(l.url), summary: str(l.summary) })).join("\n\n");
+  const text = list.map((l, i) => (i + 1) + ". " + formatLead({ ...l, url: str(l.url), role: str(l.role), summary: str(l.summary), contacts: str(l.contacts), budgetText: str(l.budgetText) })).join("\n\n");
   copyText(text, "Скопировано подходящих за сегодня: " + list.length + ".");
 });
 
