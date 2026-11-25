@@ -98,6 +98,11 @@ fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 6px; }
 .lv-warn { background: var(--warn-soft); color: var(--warn); }
 .lv-bad { background: var(--bad-soft); color: var(--bad); }
 .lv-none { background: var(--bg); color: var(--muted); }
+.kind { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
+.kind-private { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.lead.is-private { border-color: var(--accent); }
+.lead.is-staff { opacity: 0.75; }
+.pills { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 pre.msg { margin: 0; white-space: pre-wrap; word-break: break-word; font: 14px/1.5 var(--font-body); background: var(--bg); border: 1px dashed var(--line); border-radius: 8px; padding: 10px 12px; min-height: 3em; }
 .actions { display: flex; gap: 8px; flex-wrap: wrap; }
 button { font: inherit; font-weight: 600; font-size: 14px; border-radius: 8px; padding: 8px 14px; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--fg); }
@@ -168,9 +173,10 @@ button.danger { color: var(--bad); }
       <section class="block">
         <h2>Какие заказчики нужны</h2>
         <ul>
-          <li><b>В приоритете частные заказчики</b>: предприниматели, которые пишут от своего лица.</li>
-          <li><b>Психологи и психоаналитики</b> — отдельно отмечены как очень интересные.</li>
-          <li><b>Компании</b> тоже подходят, в том числе бренд-медиа, но без многоэтапного отбора.</li>
+          <li><b>Главное — частные заказчики</b>: психологи и психоаналитики, предприниматели, юристы и эксперты, которые хотят вести блог.</li>
+          <li><b>Малый и средний бизнес</b>: салоны, клиники, студии, кафе. На деле платят лучше компаний.</li>
+          <li><b>Проекты и фриланс</b> важнее работы в штат.</li>
+          <li><b>Штатные вакансии компаний</b> — в последнюю очередь, без упора на них. На сайте они внизу и скрыты, в Telegram не приходят.</li>
         </ul>
       </section>
 
@@ -282,6 +288,7 @@ button.danger { color: var(--bad); }
         <button type="button" class="small" id="tab-today" aria-pressed="true">Сегодня</button>
         <button type="button" class="small" id="tab-all" aria-pressed="false">Все</button>
       </div>
+      <button type="button" class="small" id="btn-staff" aria-pressed="false">Показать штатные</button>
       <button type="button" class="small" id="btn-copy-day">Скопировать подходящие за сегодня</button>
     </div>
     <div class="leads" id="leads"></div>
@@ -291,7 +298,27 @@ button.danger { color: var(--bad); }
 <script>
 const ROLES = ["Контент-маркетолог", "Продюсер", "Продюсер по контенту", "Редактор / автор текстов", "SMM-специалист", "Сценарист", "Другая роль"];
 const PLATFORMS = ["Telegram-чат", "Авито", "Профи.ру", "Другая биржа", "Другое"];
-const CLIENTS = ["Предприниматель (частный)", "Психолог / психоаналитик", "Другой частный заказчик", "Компания / бренд-медиа"];
+const CLIENT_KINDS = {
+  "Психолог / психоаналитик": ["private", "психолог"],
+  "Юрист / адвокат": ["private", "юрист"],
+  "Предприниматель (частный)": ["private", "предприниматель"],
+  "Малый или средний бизнес": ["private", "малый бизнес"],
+  "Эксперт / блогер": ["private", "эксперт"],
+  "Проект / фриланс": ["project", ""],
+  "Компания": ["company", ""],
+  "Штатная вакансия": ["staff", ""],
+};
+const CLIENTS = Object.keys(CLIENT_KINDS);
+const KIND_LABEL = { private: "⭐ Частный", project: "Проект", company: "Компания", staff: "Штат" };
+const KIND_ORDER = { private: 0, project: 1, company: 2, staff: 3 };
+const SHOW_STAFF_KEY = "brief-show-staff-v1";
+// старые записи без поля kind: определяем по полю «Заказчик»
+function kindOf(l) {
+  if (KIND_ORDER[l.kind] !== undefined) return l.kind;
+  const c = String(l.client || "");
+  if (/частн|психолог|предприниматель|юрист|эксперт|малый/i.test(c)) return "private";
+  return "company";
+}
 const BUDGET_FLOOR = 50000;
 const BUDGET_TARGET = 60000;
 const DAY_GOAL_MIN = 20, DAY_GOAL_MAX = 30;
@@ -400,6 +427,7 @@ $("lead-form").addEventListener("submit", async e => {
     url: l.url, role: l.role, platform: l.platform, client: l.client,
     budget: l.budget, budgetText: l.budgetRaw, summary: l.summary, contacts: l.contacts,
     level: l.verdict.level, verdictText: l.verdict.text,
+    kind: (CLIENT_KINDS[l.client] || ["company", ""])[0], niche: (CLIENT_KINDS[l.client] || ["company", ""])[1],
     createdAt: now.toISOString(), day: localDay(now),
   };
   $("btn-add").disabled = true;
@@ -422,6 +450,7 @@ let local = [];
 let hidden = new Set();
 let canWrite = true;
 let view = "today";
+let showStaff = false;
 
 function readJSON(key, fallback) { try { const v = JSON.parse(localStorage.getItem(key) || "null"); return v ?? fallback; } catch { return fallback; } }
 function writeJSON(key, v) { try { localStorage.setItem(key, JSON.stringify(v)); } catch {} }
@@ -474,12 +503,18 @@ const LEVEL_LABEL = { ok: "Подходит", warn: "Уточнить", bad: "Н
 
 function render() {
   const today = localDay(new Date());
-  const sorted = [...leads].sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
-  const todayGood = sorted.filter(l => l.day === today && l.level === "ok");
+  // сначала частные заказчики, потом проекты, компании и штатные; внутри — свежие сверху
+  const sorted = [...leads].sort((a, b) =>
+    (KIND_ORDER[kindOf(a)] - KIND_ORDER[kindOf(b)]) || String(b.createdAt).localeCompare(String(a.createdAt)));
+  const todayGood = sorted.filter(l => l.day === today && l.level === "ok" && kindOf(l) !== "staff");
   $("today-count").textContent = todayGood.length + " из " + DAY_GOAL_MIN + "–" + DAY_GOAL_MAX;
   $("today-bar").style.width = Math.min(100, todayGood.length / DAY_GOAL_MIN * 100) + "%";
 
-  const shown = view === "today" ? sorted.filter(l => l.day === today) : sorted;
+  const inPeriod = view === "today" ? sorted.filter(l => l.day === today) : sorted;
+  const staffCount = inPeriod.filter(l => kindOf(l) === "staff").length;
+  $("btn-staff").textContent = (showStaff ? "Скрыть штатные" : "Показать штатные") + " (" + staffCount + ")";
+  $("btn-staff").setAttribute("aria-pressed", String(showStaff));
+  const shown = showStaff ? inPeriod : inPeriod.filter(l => kindOf(l) !== "staff");
   const box = $("leads");
   box.replaceChildren();
   if (!shown.length) {
@@ -505,7 +540,14 @@ function leadCard(l) {
   const t = document.createElement("time");
   const d = new Date(l.createdAt);
   if (!isNaN(d)) { t.dateTime = d.toISOString(); t.textContent = d.toLocaleString("ru-RU", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }); }
-  top.append(pill, t);
+  const kind = kindOf(l);
+  card.classList.add("is-" + kind);
+  const kp = document.createElement("span");
+  kp.className = "kind kind-" + kind;
+  kp.textContent = KIND_LABEL[kind] + (str(l.niche) ? ": " + str(l.niche) : "");
+  const pills = document.createElement("div"); pills.className = "pills";
+  pills.append(pill, kp);
+  top.append(pills, t);
 
   const msg = document.createElement("pre"); msg.className = "msg";
   const safe = { url: /^https?:\/\//i.test(String(l.url)) ? String(l.url) : "", role: str(l.role), client: str(l.client), platform: str(l.platform),
@@ -552,9 +594,11 @@ function setView(v) {
 }
 $("tab-today").addEventListener("click", () => setView("today"));
 $("tab-all").addEventListener("click", () => setView("all"));
+showStaff = readJSON(SHOW_STAFF_KEY, false) === true;
+$("btn-staff").addEventListener("click", () => { showStaff = !showStaff; writeJSON(SHOW_STAFF_KEY, showStaff); render(); });
 $("btn-copy-day").addEventListener("click", () => {
   const today = localDay(new Date());
-  const list = leads.filter(l => l.day === today && l.level === "ok")
+  const list = leads.filter(l => l.day === today && l.level === "ok" && kindOf(l) !== "staff")
     .sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
   if (!list.length) { say("Сегодня подходящих пока нет."); return; }
   const text = list.map((l, i) => (i + 1) + ". " + formatLead({ ...l, url: str(l.url), role: str(l.role), summary: str(l.summary), contacts: str(l.contacts), budgetText: str(l.budgetText) })).join("\n\n");

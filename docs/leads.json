@@ -5,7 +5,7 @@
    "url": "https://t.me/smmlancer/8978",
    "role": "МИГ ищет копирайтера в команду!",
    "platform": "Telegram-чат",
-   "client": "",
+   "client": "⭐ Частный заказчик: психолог",
    "budget": null,
    "budgetText": "",
    "contacts": "hr@mig.institute",
@@ -14,14 +14,16 @@
    "verdictText": "Уточнить: бюджет не указан или только потолок",
    "createdAt": "2026-11-25T08:22:12.000171Z",
    "day": "2026-11-25",
-   "source": "bot"
+   "source": "bot",
+   "kind": "private",
+   "niche": "психолог"
   },
   {
    "id": "tg-polevakansiy-2391",
    "url": "https://t.me/polevakansiy/2391",
    "role": "СЦЕНАРИСТ РИЛС",
    "platform": "Telegram-чат",
-   "client": "",
+   "client": "Штатная вакансия: эксперт",
    "budget": 100000,
    "budgetText": "от 100 000 ₽",
    "contacts": "",
@@ -30,14 +32,16 @@
    "verdictText": "Подходит",
    "createdAt": "2026-11-24T16:20:44.390955Z",
    "day": "2026-11-24",
-   "source": "bot"
+   "source": "bot",
+   "kind": "staff",
+   "niche": "эксперт"
   },
   {
    "id": "tg-freelancefam-5934",
    "url": "https://t.me/freelancefam/5934",
    "role": "SMM-менеджер в Squiz",
    "platform": "Telegram-чат",
-   "client": "",
+   "client": "Компания",
    "budget": null,
    "budgetText": "",
    "contacts": "@squizmsk, @squiz_spb",
@@ -46,14 +50,16 @@
    "verdictText": "Уточнить: бюджет не указан или только потолок",
    "createdAt": "2026-11-24T16:20:44.390955Z",
    "day": "2026-11-24",
-   "source": "bot"
+   "source": "bot",
+   "kind": "company",
+   "niche": ""
   },
   {
    "id": "tg-freelancefam-5944",
    "url": "https://t.me/freelancefam/5944",
    "role": "Ассистент кинопродюсера",
    "platform": "Telegram-чат",
-   "client": "",
+   "client": "Штатная вакансия",
    "budget": null,
    "budgetText": "",
    "contacts": "@milisaaa08, need@dudkafilms.ru",
@@ -62,14 +68,16 @@
    "verdictText": "Уточнить: бюджет не указан или только потолок",
    "createdAt": "2026-11-24T16:20:44.390955Z",
    "day": "2026-11-24",
-   "source": "bot"
+   "source": "bot",
+   "kind": "staff",
+   "niche": ""
   },
   {
    "id": "tg-freelancefam-5950",
    "url": "https://t.me/freelancefam/5950",
    "role": "SMM-менеджер",
    "platform": "Telegram-чат",
-   "client": "",
+   "client": "Компания",
    "budget": null,
    "budgetText": "",
    "contacts": "@borodich_kate, @thinkspoetic, @care_borodich",
@@ -78,14 +86,16 @@
    "verdictText": "Уточнить: бюджет не указан или только потолок",
    "createdAt": "2026-11-24T16:20:44.390955Z",
    "day": "2026-11-24",
-   "source": "bot"
+   "source": "bot",
+   "kind": "company",
+   "niche": ""
   },
   {
    "id": "tg-freelancefam-5953",
    "url": "https://t.me/freelancefam/5953",
    "role": "видео-продюсера (удаленно, съемки в мск)",
    "platform": "Telegram-чат",
-   "client": "",
+   "client": "Компания",
    "budget": null,
    "budgetText": "",
    "contacts": "",
@@ -94,14 +104,16 @@
    "verdictText": "Уточнить: бюджет не указан или только потолок",
    "createdAt": "2026-11-24T16:20:44.390955Z",
    "day": "2026-11-24",
-   "source": "bot"
+   "source": "bot",
+   "kind": "company",
+   "niche": ""
   },
   {
    "id": "tg-chooseajob-7858",
    "url": "https://t.me/chooseajob/7858",
    "role": "SMM-менеджер в Авто В Руки",
    "platform": "Telegram-чат",
-   "client": "",
+   "client": "Штатная вакансия",
    "budget": null,
    "budgetText": "",
    "contacts": "https://promopoisk.com/vacancy/smm-menedzher-hh139266275",
@@ -110,14 +122,16 @@
    "verdictText": "Уточнить: бюджет не указан или только потолок",
    "createdAt": "2026-11-24T16:20:44.390955Z",
    "day": "2026-11-24",
-   "source": "bot"
+   "source": "bot",
+   "kind": "staff",
+   "niche": ""
   },
   {
    "id": "tg-chooseajob-7861",
    "url": "https://t.me/chooseajob/7861",
    "role": "SMM-специалист в АНО Институт развития образовательных, платформенных и цифровых решений",
    "platform": "Telegram-чат",
-   "client": "",
+   "client": "Штатная вакансия",
    "budget": null,
    "budgetText": "",
    "contacts": "https://promopoisk.com/vacancy/smm-menedzher-hh139213713",
@@ -126,14 +140,16 @@
    "verdictText": "Уточнить: бюджет не указан или только потолок",
    "createdAt": "2026-11-24T16:20:44.390955Z",
    "day": "2026-11-24",
-   "source": "bot"
+   "source": "bot",
+   "kind": "staff",
+   "niche": ""
   },
   {
    "id": "tg-chooseajob-7863",
    "url": "https://t.me/chooseajob/7863",
    "role": "Маркетолог в ООО \"ТАРГЕТ МЕДИКАЛ\"",
    "platform": "Telegram-чат",
-   "client": "",
+   "client": "Штатная вакансия",
    "budget": null,
    "budgetText": "",
    "contacts": "https://promopoisk.com/vacancy/marketolog-ooo-target-medikal",
@@ -142,14 +158,16 @@
    "verdictText": "Уточнить: бюджет не указан или только потолок",
    "createdAt": "2026-11-24T16:20:44.390955Z",
    "day": "2026-11-24",
-   "source": "bot"
+   "source": "bot",
+   "kind": "staff",
+   "niche": ""
   },
   {
    "id": "tg-tinder_tm-7218",
    "url": "https://t.me/tinder_tm/7218",
    "role": "Продюсер для эксперта Рита Дашкевич — Школа мыла Риты Дашкевич",
    "platform": "Telegram-чат",
-   "client": "",
+   "client": "⭐ Частный заказчик: эксперт",
    "budget": null,
    "budgetText": "",
    "contacts": "@margarita_dashkevich",
@@ -158,14 +176,16 @@
    "verdictText": "Уточнить: эксперт ищет продюсера, условия обсуждаются",
    "createdAt": "2026-11-24T16:20:44.390955Z",
    "day": "2026-11-24",
-   "source": "bot"
+   "source": "bot",
+   "kind": "private",
+   "niche": "эксперт"
   },
   {
    "id": "tg-tinder_tm-7221",
    "url": "https://t.me/tinder_tm/7221",
    "role": "Продюсер для эксперта Надежда Медведева — Обучение гипнозу, гипноз для себя, техники НЛП и программиро",
    "platform": "Telegram-чат",
-   "client": "",
+   "client": "⭐ Частный заказчик: психолог",
    "budget": null,
    "budgetText": "",
    "contacts": "@bablonafty, @nadia_medvedeva",
@@ -174,14 +194,16 @@
    "verdictText": "Уточнить: эксперт ищет продюсера, условия обсуждаются",
    "createdAt": "2026-11-24T16:20:44.390955Z",
    "day": "2026-11-24",
-   "source": "bot"
+   "source": "bot",
+   "kind": "private",
+   "niche": "психолог"
   },
   {
    "id": "tg-work_editor-6807",
    "url": "https://t.me/work_editor/6807",
    "role": "SEO-копирайтер",
    "platform": "Telegram-чат",
-   "client": "",
+   "client": "Штатная вакансия",
    "budget": 60000,
    "budgetText": "от 60 000 ₽ до 120 000 ₽",
    "contacts": "@protasevichliza",
@@ -190,14 +212,16 @@
    "verdictText": "Подходит",
    "createdAt": "2026-11-24T15:55:02.890475Z",
    "day": "2026-11-24",
-   "source": "bot"
+   "source": "bot",
+   "kind": "staff",
+   "niche": ""
   },
   {
    "id": "tg-work_editor-6808",
    "url": "https://t.me/work_editor/6808",
    "role": "Преподаватель русского языка для обучения нейросетей",
    "platform": "Telegram-чат",
-   "client": "",
+   "client": "Штатная вакансия",
    "budget": null,
    "budgetText": "до 133 000 ₽",
    "contacts": "https://hh.ru/vacancy/139324647",
@@ -206,14 +230,16 @@
    "verdictText": "Уточнить: бюджет не указан или только потолок",
    "createdAt": "2026-11-24T15:55:02.890475Z",
    "day": "2026-11-24",
-   "source": "bot"
+   "source": "bot",
+   "kind": "staff",
+   "niche": ""
   },
   {
    "id": "tg-work_editor-6809",
    "url": "https://t.me/work_editor/6809",
    "role": "Сценарист креативного контента (Reels, TikTok, Shorts)",
    "platform": "Telegram-чат",
-   "client": "",
+   "client": "Компания",
    "budget": 150000,
    "budgetText": "от 150 000 ₽",
    "contacts": "https://hh.ru/vacancy/139055926",
@@ -222,14 +248,16 @@
    "verdictText": "Подходит",
    "createdAt": "2026-11-24T15:55:02.890475Z",
    "day": "2026-11-24",
-   "source": "bot"
+   "source": "bot",
+   "kind": "company",
+   "niche": ""
   },
   {
    "id": "tg-work_editor-6812",
    "url": "https://t.me/work_editor/6812",
    "role": "Seo-копирайтер",
    "platform": "Telegram-чат",
-   "client": "",
+   "client": "⭐ Частный заказчик: юрист",
    "budget": 85000,
    "budgetText": "от 85 000 ₽ до 100 000 ₽",
    "contacts": "89331094772",
@@ -238,14 +266,16 @@
    "verdictText": "Подходит",
    "createdAt": "2026-11-24T15:55:02.890475Z",
    "day": "2026-11-24",
-   "source": "bot"
+   "source": "bot",
+   "kind": "private",
+   "niche": "юрист"
   },
   {
    "id": "tg-vacancysmm-17306",
    "url": "https://t.me/vacancysmm/17306",
    "role": "Любишь спорт и умеешь писать интересные тексты?",
    "platform": "Telegram-чат",
-   "client": "",
+   "client": "Компания",
    "budget": null,
    "budgetText": "",
    "contacts": "@hr_searching",
@@ -254,14 +284,16 @@
    "verdictText": "Уточнить: бюджет не указан или только потолок",
    "createdAt": "2026-11-24T15:55:02.890475Z",
    "day": "2026-11-24",
-   "source": "bot"
+   "source": "bot",
+   "kind": "company",
+   "niche": ""
   },
   {
    "id": "tg-vacancysmm-17312",
    "url": "https://t.me/vacancysmm/17312",
    "role": "SMM-менеджер / AI Content Creator — удалённая работа",
    "platform": "Telegram-чат",
-   "client": "",
+   "client": "Проект / фриланс",
    "budget": null,
    "budgetText": "",
    "contacts": "@dxb_eng",
@@ -270,14 +302,16 @@
    "verdictText": "Уточнить: бюджет не указан или только потолок",
    "createdAt": "2026-11-24T15:55:02.890475Z",
    "day": "2026-11-24",
-   "source": "bot"
+   "source": "bot",
+   "kind": "project",
+   "niche": ""
   },
   {
    "id": "tg-dddwork-5311",
    "url": "https://t.me/dddwork/5311",
    "role": "Контент-креатор в Сократик (нейросеть, которая за минуты собирает презентации)",
    "platform": "Telegram-чат",
-   "client": "",
+   "client": "Компания",
    "budget": null,
    "budgetText": "",
    "contacts": "@bykatya",
@@ -286,14 +320,16 @@
    "verdictText": "Уточнить: бюджет не указан или только потолок",
    "createdAt": "2026-11-24T15:55:02.890475Z",
    "day": "2026-11-24",
-   "source": "bot"
+   "source": "bot",
+   "kind": "company",
+   "niche": ""
   },
   {
    "id": "tg-dddwork-5314",
    "url": "https://t.me/dddwork/5314",
    "role": "Образовательное пространство Международный институт гештальта (МИГ) ищет копирайтера",
    "platform": "Telegram-чат",
-   "client": "",
+   "client": "⭐ Частный заказчик: психолог",
    "budget": null,
    "budgetText": "",
    "contacts": "hr@mig.institute",
@@ -302,14 +338,16 @@
    "verdictText": "Уточнить: бюджет не указан или только потолок",
    "createdAt": "2026-11-24T15:55:02.890475Z",
    "day": "2026-11-24",
-   "source": "bot"
+   "source": "bot",
+   "kind": "private",
+   "niche": "психолог"
   },
   {
    "id": "tg-smmlancer-8962",
    "url": "https://t.me/smmlancer/8962",
    "role": "Маркетолог (бренд- и контент-стратегия) в ProСудись",
    "platform": "Telegram-чат",
-   "client": "",
+   "client": "Штатная вакансия: юрист",
    "budget": 60000,
    "budgetText": "от 60 000 ₽",
    "contacts": "@wspn9",
@@ -318,14 +356,16 @@
    "verdictText": "Подходит",
    "createdAt": "2026-11-24T15:55:02.890475Z",
    "day": "2026-11-24",
-   "source": "bot"
+   "source": "bot",
+   "kind": "staff",
+   "niche": "юрист"
   },
   {
    "id": "tg-dnative_job-11686",
    "url": "https://t.me/dnative_job/11686",
    "role": "SMM-менеджер",
    "platform": "Telegram-чат",
-   "client": "",
+   "client": "⭐ Частный заказчик: предприниматель",
    "budget": 50000,
    "summary": "Вакансия — Удалённо 2easyeng (ИП Горнак Екатерина) Платформа с готовыми уроками и speaking-играми для преподавателей английского. Ищем человека, который превратит соцсети из «новостей про продукт» в полезное медиа для тичеров. Список обязанностей: Вести Instagram (Reels + Stories), Threads и Telegram Самостоятельно придумывать, снимать и монтировать короткие Reels Писать посты в TG с пользой для у…",
    "level": "warn",
@@ -334,14 +374,16 @@
    "day": "2026-11-24",
    "source": "bot",
    "contacts": "https://vetka.dnative.ru/employer-jobs/821",
-   "budgetText": "от 50 000 ₽ до 70 000 ₽"
+   "budgetText": "от 50 000 ₽ до 70 000 ₽",
+   "kind": "private",
+   "niche": "предприниматель"
   },
   {
    "id": "tg-digital_jobster-6670",
    "url": "https://t.me/digital_jobster/6670",
    "role": "SMM-менеджер в сеть фитнес-студий «Любовь и коврики»",
    "platform": "Telegram-чат",
-   "client": "",
+   "client": "⭐ Частный заказчик: малый бизнес",
    "budget": null,
    "summary": "Формат/ Локация: Удаленка, Онлайн Любовь и коврики» — сеть фитнес-студий в Новосибирске. У нас проходят занятия по йоге, пилатесу, растяжке, танцам и другим направлениям для взрослых и детей. Нам нужен человек, который умеет придумывать контент, работать с командой и доводить идеи до публикации. Что нужно делать и сделать: Контент-стратегия и развитие социальных сетей: Вести социальные сети студий…",
    "level": "warn",
@@ -350,14 +392,16 @@
    "day": "2026-11-24",
    "source": "bot",
    "contacts": "@MVall11, mvallhr11@gmail.com",
-   "budgetText": "до 70 000 ₽"
+   "budgetText": "до 70 000 ₽",
+   "kind": "private",
+   "niche": "малый бизнес"
   },
   {
    "id": "tg-dnative_job-11679",
    "url": "https://t.me/dnative_job/11679",
    "role": "Digital / Growth-маркетолог",
    "platform": "Telegram-чат",
-   "client": "",
+   "client": "Проект / фриланс",
    "budget": 80000,
    "summary": "Вакансия — Удалённо Doja ltd Doja Exchange — финтех-стартап, сервис пополнения китайских кошельков Alipay/WeChat Pay и международных платежей. Наш основной продукт — Doja Wallet, on/off-ramp криптокошелёк для российских туристов в Китае (пополнение китайских кошельков, покупка/продажа USDT, криптокарты). Список обязанностей: 1. Позиционирование и маркетинговая стратегия 2. Реклама и привлечение кл…",
    "level": "ok",
@@ -366,14 +410,16 @@
    "day": "2026-11-23",
    "source": "bot",
    "contacts": "https://vetka.dnative.ru/employer-jobs/803",
-   "budgetText": "от 80 000 ₽ до 120 000 ₽"
+   "budgetText": "от 80 000 ₽ до 120 000 ₽",
+   "kind": "project",
+   "niche": ""
   },
   {
    "id": "tg-dnative_job-11681",
    "url": "https://t.me/dnative_job/11681",
    "role": "SMM-менеджер в телеграм канал",
    "platform": "Telegram-чат",
-   "client": "",
+   "client": "Компания",
    "budget": 50000,
    "summary": "Вакансия — Краснодар https://t.me/cigar50 Авторский телеграм канал от Афисионадо https://t.me/cigar50. Параллельно предприниматель в IT сфере. Список обязанностей: Что нужно делать? Привести канал к одному стилю Разработать стратегию развития Помогать в публикации контента Разработка стабильного и интересного контент-плана Помогать в создании контента (основные идеи\\фото и мысли мои) Выступать в р…",
    "level": "warn",
@@ -382,14 +428,16 @@
    "day": "2026-11-23",
    "source": "bot",
    "contacts": "@cigar50, https://vetka.dnative.ru/employer-jobs/806",
-   "budgetText": "от 50 000 ₽ до 150 000 ₽"
+   "budgetText": "от 50 000 ₽ до 150 000 ₽",
+   "kind": "company",
+   "niche": ""
   },
   {
    "id": "tg-digital_jobster-6668",
    "url": "https://t.me/digital_jobster/6668",
    "role": "Контент-мейкер в SMM-агентство",
    "platform": "Telegram-чат",
-   "client": "",
+   "client": "Штатная вакансия",
    "budget": 90000,
    "summary": "Формат/ Локация: Удаленка, онлайн SMM-агентство Наши клиенты — это масштабные и амбициозные проекты. Сейчас в работе: Бизнес-клуб с совокупным оборотом резидентов 62 млрд ₽. Премиальное бюро по созданию кухонь для известных ресторанов Москвы. Духовные туры в Тибет при содействии Министерства туризма Китая. Вам предстоит вести одновременно 4–5 проектов. Что нужно делать и сделать: Монтаж Reels Офор…",
    "level": "ok",
@@ -398,11 +446,13 @@
    "day": "2026-11-23",
    "source": "bot",
    "contacts": "@katerinasineeva",
-   "budgetText": "от 90 000 ₽"
+   "budgetText": "от 90 000 ₽",
+   "kind": "staff",
+   "niche": ""
   },
   {
    "budget": 60000,
-   "client": "Компания / бренд-медиа",
+   "client": "Компания",
    "createdAt": "2026-11-23T18:30:03.000Z",
    "day": "2026-11-23",
    "level": "ok",
@@ -412,11 +462,13 @@
    "url": "https://www.avito.ru/kazan/vakansii/smm_menedzher_8236382925",
    "verdictText": "Подходит",
    "id": "avito-8236382925",
-   "contacts": "Отклик через Авито"
+   "contacts": "Отклик через Авито",
+   "kind": "company",
+   "niche": ""
   },
   {
    "budget": 60000,
-   "client": "Компания / бренд-медиа",
+   "client": "Штатная вакансия",
    "createdAt": "2026-11-23T18:30:02.000Z",
    "day": "2026-11-23",
    "level": "ok",
@@ -426,11 +478,13 @@
    "url": "https://www.avito.ru/sevastopol/vakansii/smm_-_spetsialist_8456935447",
    "verdictText": "Подходит",
    "id": "avito-8456935447",
-   "contacts": "Отклик через Авито"
+   "contacts": "Отклик через Авито",
+   "kind": "staff",
+   "niche": ""
   },
   {
    "budget": 65000,
-   "client": "Компания / бренд-медиа",
+   "client": "Штатная вакансия: психолог",
    "createdAt": "2026-11-23T17:52:50.000Z",
    "day": "2026-11-23",
    "level": "ok",
@@ -440,11 +494,13 @@
    "url": "https://t.me/dnative_job/11663",
    "verdictText": "Подходит",
    "id": "tg-dnative_job-11663",
-   "contacts": "vetka.dnative.ru/employer-jobs/772"
+   "contacts": "vetka.dnative.ru/employer-jobs/772",
+   "kind": "staff",
+   "niche": "психолог"
   },
   {
    "budget": null,
-   "client": "Компания / бренд-медиа",
+   "client": "⭐ Частный заказчик: психолог",
    "createdAt": "2026-11-23T17:52:49.000Z",
    "day": "2026-11-23",
    "level": "warn",
@@ -454,11 +510,13 @@
    "url": "https://t.me/dnative_job/11668",
    "verdictText": "Бюджет не указан, уточнить",
    "id": "tg-dnative_job-11668",
-   "contacts": "vetka.dnative.ru/employer-jobs/780"
+   "contacts": "vetka.dnative.ru/employer-jobs/780",
+   "kind": "private",
+   "niche": "психолог"
   },
   {
    "budget": 80000,
-   "client": "Компания / бренд-медиа",
+   "client": "Компания",
    "createdAt": "2026-11-23T17:52:48.000Z",
    "day": "2026-11-23",
    "level": "ok",
@@ -468,11 +526,13 @@
    "url": "https://t.me/dnative_job/11674",
    "verdictText": "Подходит",
    "id": "tg-dnative_job-11674",
-   "contacts": "vetka.dnative.ru/employer-jobs/641"
+   "contacts": "vetka.dnative.ru/employer-jobs/641",
+   "kind": "company",
+   "niche": ""
   },
   {
    "budget": null,
-   "client": "Компания / бренд-медиа",
+   "client": "Компания",
    "createdAt": "2026-11-23T17:52:47.000Z",
    "day": "2026-11-23",
    "level": "warn",
@@ -482,11 +542,13 @@
    "url": "https://t.me/dnative_job/11676",
    "verdictText": "Бюджет не указан, уточнить",
    "id": "tg-dnative_job-11676",
-   "contacts": "vetka.dnative.ru/employer-jobs/799"
+   "contacts": "vetka.dnative.ru/employer-jobs/799",
+   "kind": "company",
+   "niche": ""
   },
   {
    "budget": 100000,
-   "client": "Компания / бренд-медиа",
+   "client": "⭐ Частный заказчик: психолог",
    "createdAt": "2026-11-23T17:52:46.000Z",
    "day": "2026-11-23",
    "level": "ok",
@@ -496,11 +558,13 @@
    "url": "https://t.me/dnative_job/11678",
    "verdictText": "Подходит",
    "id": "tg-dnative_job-11678",
-   "contacts": "vetka.dnative.ru/employer-jobs/802"
+   "contacts": "vetka.dnative.ru/employer-jobs/802",
+   "kind": "private",
+   "niche": "психолог"
   },
   {
    "budget": 150000,
-   "client": "Компания / бренд-медиа",
+   "client": "Компания",
    "createdAt": "2026-11-23T17:52:43.000Z",
    "day": "2026-11-23",
    "level": "ok",
@@ -510,11 +574,13 @@
    "url": "https://t.me/dnative_job/11650",
    "verdictText": "Подходит",
    "id": "tg-dnative_job-11650",
-   "contacts": "vetka.dnative.ru/employer-jobs/745"
+   "contacts": "vetka.dnative.ru/employer-jobs/745",
+   "kind": "company",
+   "niche": ""
   },
   {
    "budget": 60000,
-   "client": "Компания / бренд-медиа",
+   "client": "Штатная вакансия: психолог",
    "createdAt": "2026-11-23T17:52:40.000Z",
    "day": "2026-11-23",
    "level": "ok",
@@ -524,11 +590,13 @@
    "url": "https://t.me/dnative_job/11656",
    "verdictText": "Подходит",
    "id": "tg-dnative_job-11656",
-   "contacts": "vetka.dnative.ru/employer-jobs/760"
+   "contacts": "vetka.dnative.ru/employer-jobs/760",
+   "kind": "staff",
+   "niche": "психолог"
   },
   {
    "budget": 50000,
-   "client": "Компания / бренд-медиа",
+   "client": "Штатная вакансия",
    "createdAt": "2026-11-23T17:52:39.000Z",
    "day": "2026-11-23",
    "level": "warn",
@@ -538,11 +606,13 @@
    "url": "https://t.me/rabota_freelancee/4307",
    "verdictText": "Пограничный: ниже целевых 60 000 ₽",
    "id": "tg-rabota_freelancee-4307",
-   "contacts": "@klsnnkt"
+   "contacts": "@klsnnkt",
+   "kind": "staff",
+   "niche": ""
   },
   {
    "budget": 90000,
-   "client": "Компания / бренд-медиа",
+   "client": "Штатная вакансия",
    "createdAt": "2026-11-23T17:52:38.000Z",
    "day": "2026-11-23",
    "level": "ok",
@@ -552,11 +622,13 @@
    "url": "https://t.me/rabota_freelancee/4310",
    "verdictText": "Подходит",
    "id": "tg-rabota_freelancee-4310",
-   "contacts": "@katerinasineeva"
+   "contacts": "@katerinasineeva",
+   "kind": "staff",
+   "niche": ""
   },
   {
    "budget": 190000,
-   "client": "Компания / бренд-медиа",
+   "client": "Штатная вакансия: эксперт",
    "createdAt": "2026-11-23T17:52:37.000Z",
    "day": "2026-11-23",
    "level": "ok",
@@ -566,7 +638,9 @@
    "url": "https://t.me/rabota_freelancee/4312",
    "verdictText": "Подходит",
    "id": "tg-rabota_freelancee-4312",
-   "contacts": "@Anastasia_N_24, резюме и кейсы"
+   "contacts": "@Anastasia_N_24, резюме и кейсы",
+   "kind": "staff",
+   "niche": "эксперт"
   }
  ]
 }

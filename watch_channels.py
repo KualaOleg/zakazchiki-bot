@@ -163,6 +163,71 @@ class Verdict:
     reason: str
     low: int | None = None
     high: int | None = None
+    kind: str = "company"  # private | project | company | staff
+    niche: str = ""
+
+
+# ---------- тип заказчика: частные и малый бизнес важнее штатных вакансий ----------
+
+STAFF_RE = re.compile(
+    r"тк\s*рф|трудоустройств|оформлени\w*\s+(?:в\s+штат|по\s+тк)|\bв\s+штат\b|соцпакет|\bдмс\b"
+    r"|испытательн\w+\s+срок|полн\w+\s+(?:рабоч\w+\s+)?(?:день|занятост)|\bоклад\w*|\b[25]\s*/\s*2\b"
+    r"|с\s+\d{1,2}[:.]00\s+до\s+\d{1,2}[:.]00",
+    re.I,
+)
+PROJECT_RE = re.compile(
+    r"на\s+проект|проектн\w+|фриланс|частичн\w+\s+занятост|сдельн|подработ|разов\w+"
+    r"|за\s+(?:пост|ролик|сценари|статью|текст)|пакет\w*\s+сценари|аутсорс|самозанят|по\s+договор",
+    re.I,
+)
+NICHES = [
+    ("психолог", re.compile(r"психолог|психотерап|психоанали|гештальт|коуч|гипно", re.I)),
+    ("юрист", re.compile(r"юрист|адвокат|юридическ\w+\s+(?:практик|бюро|кабинет|услуг)|нотариус", re.I)),
+    ("эксперт", re.compile(r"\bэксперт(?:а|у|ом|ы|ов|ам|ами|ах)?\b|наставни|блогер|личн\w+\s+бренд"
+                           r"|авторск\w+\s+(?:курс|канал|блог)|онлайн-школ|инфобиз", re.I)),
+    ("предприниматель", re.compile(r"предпринимател|собственник\w*\s+бизнес|владел\w+\s+(?:бизнес|салон|клиник|студи|магазин)"
+                                   r"|\bИП\b|мал\w+\s+(?:и\s+средн\w+\s+)?бизнес|средн\w+\s+бизнес|семейн\w+\s+бизнес", re.I)),
+    ("малый бизнес", re.compile(r"салон\w*|клиник\w*|стоматолог|кофейн|пекарн|шоурум|бутик|фитнес-студи"
+                                r"|студи[яюи]\s+(?:красоты|йоги|танц|пилатес|растяжк)|частн\w+\s+(?:практик|школ|клуб)", re.I)),
+]
+KIND_LABEL = {"private": "⭐ Частный заказчик", "project": "Проект / фриланс", "company": "Компания", "staff": "Штатная вакансия"}
+
+
+NICHE_NEG_BEFORE_RE = re.compile(
+    r"(?:искать|ищем|ищу|подбир\w*|подбор\w*|договарива\w*|работ\w*\s+с|связ\w*\s+с|младш\w*|старш\w*|"
+    r"брендов\s+и|компаний\s+и|для\s+брендов|вакансии?|требуется|нужен|нужна)\s*(?:[\w-]+\s+){0,2}$",
+    re.I,
+)
+AGENCY_RE = re.compile(r"агентств|продакшн|продакшен|digital-студи|smm-студи|креативн\w+\s+студи|маркетингов\w+\s+студи", re.I)
+
+
+def find_niche(text: str) -> str:
+    """Ниша заказчика. Упоминание не считается, если речь о том, кого ищут или с кем работать
+    («ищем младшего юриста», «искать блогеров», «контент для брендов и экспертов»)."""
+    for name, rx in NICHES:
+        for m in rx.finditer(text):
+            if not NICHE_NEG_BEFORE_RE.search(text[max(0, m.start() - 40):m.start()]):
+                return name
+    return ""
+
+
+def classify_client(text: str) -> tuple[str, str]:
+    """(тип, ниша). Признаки штата перевешивают нишу: штатная вакансия в клинике — всё равно штат.
+    Агентства и продакшены — всегда компания, даже если работают с экспертами."""
+    niche = find_niche(text)
+    if STAFF_RE.search(text):
+        return "staff", niche
+    if AGENCY_RE.search(text):
+        return "company", ""
+    if niche:
+        return "private", niche
+    if PROJECT_RE.search(text):
+        return "project", ""
+    return "company", ""
+
+
+def client_label(kind: str, niche: str) -> str:
+    return KIND_LABEL.get(kind, "Компания") + (f": {niche}" if niche else "")
 
 
 def judge(text: str, min_budget: int, floor_budget: int) -> Verdict:
@@ -180,13 +245,14 @@ def judge(text: str, min_budget: int, floor_budget: int) -> Verdict:
     if not looks_like_vacancy(text):
         return Verdict(False, "skip", "не похоже на вакансию")
     low, high = parse_budget(text)
+    kind, niche = classify_client(text)
     if low is None:
-        return Verdict(True, "warn", "бюджет не указан или только потолок", low, high)
+        return Verdict(True, "warn", "бюджет не указан или только потолок", low, high, kind, niche)
     if low < floor_budget:
-        return Verdict(False, "skip", f"бюджет от {low} ниже {floor_budget}", low, high)
+        return Verdict(False, "skip", f"бюджет от {low} ниже {floor_budget}", low, high, kind, niche)
     if low < min_budget:
-        return Verdict(True, "warn", f"ниже целевых {min_budget}", low, high)
-    return Verdict(True, "ok", "подходит", low, high)
+        return Verdict(True, "warn", f"ниже целевых {min_budget}", low, high, kind, niche)
+    return Verdict(True, "ok", "подходит", low, high, kind, niche)
 
 
 def rub(n: int) -> str:
@@ -316,6 +382,7 @@ def format_message(post_id: str, text: str, v: Verdict, contacts: list[str], rol
     channel = post_id.split("/")[0]
     out = [
         f"<b>{html.escape(label)}</b>",
+        f"<b>{html.escape(client_label(v.kind, v.niche))}</b>",
         f"<b>Вакансия:</b> {html.escape(role)}",
         f"<b>Описание работы:</b> {html.escape(desc or 'в посте по ссылке')}",
         f"<b>ЗП:</b> {html.escape(budget_text(v) or 'не указана')}",
@@ -352,7 +419,7 @@ def site_lead(post_id: str, text: str, v: Verdict, now: datetime, contacts: list
         "url": f"https://t.me/{post_id}",
         "role": role,
         "platform": "Telegram-чат",
-        "client": "",
+        "client": client_label(v.kind, v.niche),
         "budget": v.low,
         "budgetText": budget_text(v),
         "contacts": ", ".join(contacts),
@@ -362,6 +429,8 @@ def site_lead(post_id: str, text: str, v: Verdict, now: datetime, contacts: list
         "createdAt": now.isoformat().replace("+00:00", "Z"),
         "day": now.astimezone(MSK).date().isoformat(),
         "source": "bot",
+        "kind": v.kind,
+        "niche": v.niche,
     }
 
 
@@ -525,7 +594,8 @@ def main() -> int:
                 if expert_tags[ch] not in text.lower():
                     v = Verdict(False, "skip", "не пост эксперта")
                 else:
-                    v = Verdict(True, "warn", "эксперт ищет продюсера, условия обсуждаются")
+                    niche = find_niche(text) or "эксперт"
+                    v = Verdict(True, "warn", "эксперт ищет продюсера, условия обсуждаются", kind="private", niche=niche)
                     role = expert_role(text)
             else:
                 v = judge(text, min_budget, floor_budget)
@@ -544,7 +614,7 @@ def main() -> int:
             if lead["id"] in site_ids:  # уже есть на сайте (найдено вручную) — в Telegram не дублируем
                 seen[pid] = now.isoformat()
                 continue
-            if tg_enabled:
+            if tg_enabled and v.kind != "staff":  # штатные — только на сайт, в Telegram не шлём
                 ok, err = tg_send(token, chat, msg)
                 if not ok:
                     print(f"Telegram не принял {pid}: {err}. Остальное уйдёт при следующем запуске.")
@@ -556,7 +626,7 @@ def main() -> int:
             site.append(lead)
             site_ids.add(lead["id"])
             added += 1
-            print(f"  + {pid} [{v.level}] {lead['role']}")
+            print(f"  + {pid} [{v.level}] [{v.kind}{(':' + v.niche) if v.niche else ''}] {lead['role']}")
         if failed:
             break
     if not args.dry_run:
