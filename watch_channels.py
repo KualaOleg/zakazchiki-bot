@@ -177,7 +177,8 @@ STAFF_RE = re.compile(
 )
 PROJECT_RE = re.compile(
     r"на\s+проект|проектн\w+|фриланс|частичн\w+\s+занятост|сдельн|подработ|разов\w+"
-    r"|за\s+(?:пост|ролик|сценари|статью|текст)|пакет\w*\s+сценари|аутсорс|самозанят|по\s+договор",
+    r"|за\s+(?:пост|ролик|сценари|статью|текст)|пакет\w*\s+сценари|аутсорс|самозанят|по\s+договор"
+    r"|парт[- ]?тайм|part[- ]?time|\d+\s*[-–]\s*\d+\s*час\w*\s+в\s+неделю|прайс|почасов",
     re.I,
 )
 NICHES = [
@@ -186,7 +187,8 @@ NICHES = [
     ("эксперт", re.compile(r"\bэксперт(?:а|у|ом|ы|ов|ам|ами|ах)?\b|наставни|блогер|личн\w+\s+бренд"
                            r"|авторск\w+\s+(?:курс|канал|блог)|онлайн-школ|инфобиз", re.I)),
     ("предприниматель", re.compile(r"предпринимател|собственник\w*\s+бизнес|владел\w+\s+(?:бизнес|салон|клиник|студи|магазин)"
-                                   r"|\bИП\b|мал\w+\s+(?:и\s+средн\w+\s+)?бизнес|средн\w+\s+бизнес|семейн\w+\s+бизнес", re.I)),
+                                   r"|\bИП\b|мал\w+\s+(?:и\s+средн\w+\s+)?бизнес|средн\w+\s+бизнес|семейн\w+\s+бизнес"
+                                   r"|\b(?:ex[- ]?)?ceo\b|фаундер|\bfounder\b", re.I)),
     ("малый бизнес", re.compile(r"салон\w*|клиник\w*|стоматолог|кофейн|пекарн|шоурум|бутик|фитнес-студи"
                                 r"|студи[яюи]\s+(?:красоты|йоги|танц|пилатес|растяжк)|частн\w+\s+(?:практик|школ|клуб)", re.I)),
 ]
@@ -285,6 +287,11 @@ APPLY_TEXT_RE = re.compile(r"отклик|откликнуться|написа�
 TME_RE = re.compile(r"^https?://(?:t\.me|telegram\.me)/([A-Za-z][A-Za-z0-9_]{3,31})/?$", re.I)
 
 
+APPLY_TO_RE = re.compile(
+    r"(?:писать|пишите|откликаться|откликнуться|кому\s+писать|контакт\w*|отклик\w*|связь|резюме)\s*[:>→—–-]*\s*"
+    r"(?:в\s+(?:тг|телеграм\w*|лс)\s*[:>→—–-]*\s*)?@([A-Za-z][A-Za-z0-9_]{3,31})",
+    re.I,
+)
 TME_TEXT_RE = re.compile(r"(?<![\w/])(?:https?://)?(?:t\.me|telegram\.me)/([A-Za-z][A-Za-z0-9_]{3,31})\b", re.I)
 
 
@@ -361,6 +368,13 @@ def extract_contacts(text: str, links: list[tuple[str, str]], channel: str,
             continue
         if APPLY_TEXT_RE.search(label) or re.search(r"vetka\.dnative\.ru|hh\.ru/vacancy", href, re.I):
             add(url)
+    # контакт, на который прямо просят писать («Писать > @name», «Отклики: @name»), — первым
+    primary = [m.group(1) for m in APPLY_TO_RE.finditer(text) if m.group(1).lower() not in skip_names]
+    for name in reversed(primary):
+        handle = "@" + name
+        out[:] = [x for x in out if x.lower() != handle.lower()]
+        out.insert(0, handle)
+    del out[limit:]
     for m in USERNAME_RE.finditer(text):
         if m.group(1).lower() not in skip_names:
             add("@" + m.group(1))
