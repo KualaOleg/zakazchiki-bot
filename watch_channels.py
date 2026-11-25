@@ -288,6 +288,26 @@ TME_RE = re.compile(r"^https?://(?:t\.me|telegram\.me)/([A-Za-z][A-Za-z0-9_]{3,3
 TME_TEXT_RE = re.compile(r"(?<![\w/])(?:https?://)?(?:t\.me|telegram\.me)/([A-Za-z][A-Za-z0-9_]{3,31})\b", re.I)
 
 
+def _norm_line(line: str) -> str:
+    return " ".join(line.split()).lower()
+
+
+def boilerplate_lines(posts: list[tuple], min_count: int = 3) -> set[str]:
+    """Строки, которые стоят в половине постов канала и больше: подпись, реклама канала, навигация.
+    Их вырезаем до всех проверок, иначе «бот… разработан при участии психолога» делает любой пост «психологом»."""
+    counts: dict[str, int] = {}
+    for p in posts:
+        for ln in {_norm_line(x) for x in p[2].splitlines()}:
+            if len(ln) >= 20:  # короткие строки (теги, «Вакансия», эмодзи-разделители) не трогаем
+                counts[ln] = counts.get(ln, 0) + 1
+    threshold = max(min_count, len(posts) // 2)
+    return {ln for ln, c in counts.items() if c >= threshold}
+
+
+def strip_lines(text: str, lines: set[str]) -> str:
+    return "\n".join(x for x in text.splitlines() if _norm_line(x) not in lines) if lines else text
+
+
 def channel_boilerplate(posts: list[tuple], min_count: int = 3) -> set[str]:
     """@username и ссылки, которые стоят в половине постов канала и больше: это подпись канала, а не работодатель."""
     counts: dict[str, int] = {}
@@ -583,7 +603,9 @@ def main() -> int:
             continue
         print(f"[{ch}] постов на странице: {len(posts)}")
         boiler = channel_boilerplate(posts)
+        footer = boilerplate_lines(posts)
         for pid, when, text, links in posts:
+            raw_text, text = text, strip_lines(text, footer)
             if pid in seen:
                 continue
             if when is None or now - when > max_age:
@@ -591,7 +613,7 @@ def main() -> int:
                 continue
             role = None
             if ch in expert_tags:
-                if expert_tags[ch] not in text.lower():
+                if expert_tags[ch] not in raw_text.lower():
                     v = Verdict(False, "skip", "не пост эксперта")
                 else:
                     niche = find_niche(text) or "эксперт"
