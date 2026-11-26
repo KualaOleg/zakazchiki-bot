@@ -1,6 +1,24 @@
 {
  "leads": [
   {
+   "id": "tg-freelancefam-5961",
+   "url": "https://t.me/freelancefam/5961",
+   "role": "Екатерина — копирайтер, SEO‑копирайтер, контент‑менеджер.",
+   "platform": "Telegram-чат",
+   "client": "Компания",
+   "budget": null,
+   "budgetText": "",
+   "contacts": "@VasilKulkov, https://disk.yandex.ru/i/kBXJs12y6lFdNw, @taaliina, @fererro_ra",
+   "summary": "Василий — Delivery Manager / IT Project Manager. 18 лет в digital и web-разработке, из них 13 лет — в управлении IT-проектами и delivery. Вёл проекты полного цикла для федеральных клиентов: ЛУКОЙЛ, Почта Банк, школа «Летово», РЭЦ, Главгосэкспертиза России. Резюме Алина — ивент-менеджер с двухлетним опытом организации живых событий - воркшопов с иностранными артистами и танцевальных чемпионатов. Ре…",
+   "level": "warn",
+   "verdictText": "Уточнить: бюджет не указан или только потолок",
+   "createdAt": "2026-11-26T12:41:45.961237Z",
+   "day": "2026-11-26",
+   "source": "bot",
+   "kind": "company",
+   "niche": ""
+  },
+  {
    "id": "tg-tinder_tm-7227",
    "url": "https://t.me/tinder_tm/7227",
    "role": "Продюсер для эксперта Ирина Морина — Психология, трансформационные психологические игры и развити",
